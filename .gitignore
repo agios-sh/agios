@@ -1,0 +1,14 @@
+# Go binary output
+/agios
+*.exe
+testdata/mock-app/mock-app
+
+# Go vendor directory
+vendor/
+
+# Node.js (kept for compatibility)
+node_modules/
+dist/
+
+# OS files
+.DS_Store

@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          release-type: go
+
+  build:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: darwin
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          version="${{ needs.release-please.outputs.version }}"
+          ext=""
+          if [ "$GOOS" = "windows" ]; then
+            ext=".exe"
+          fi
+          go build -ldflags "-s -w -X main.version=v${version}" -o "agios${ext}" .
+
+      - name: Archive
+        env:
+          GOOS: ${{ matrix.goos }}
+        run: |
+          archive="agios_${{ matrix.goos }}_${{ matrix.goarch }}"
+          if [ "$GOOS" = "windows" ]; then
+            zip "${archive}.zip" agios.exe
+          else
+            tar czf "${archive}.tar.gz" agios
+          fi
+
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOS: ${{ matrix.goos }}
+        run: |
+          archive="agios_${{ matrix.goos }}_${{ matrix.goarch }}"
+          if [ "$GOOS" = "windows" ]; then
+            gh release upload "${{ needs.release-please.outputs.tag_name }}" "${archive}.zip"
+          else
+            gh release upload "${{ needs.release-please.outputs.tag_name }}" "${archive}.tar.gz"
+          fi
