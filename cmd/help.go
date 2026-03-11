@@ -25,6 +25,7 @@ func builtinCommands() []commandInfo {
 		{Name: "browser", Summary: "Built-in browser for web automation", Usage: "agios browser <command>"},
 		{Name: "terminal", Summary: "Built-in terminal for interactive shell sessions", Usage: "agios terminal <command>"},
 		{Name: "tasks", Summary: "Built-in task tracking across local files and GitHub Issues", Usage: "agios tasks <command>"},
+		{Name: "update", Summary: "Check for and install agios updates", Usage: "agios update [check]"},
 	}
 }
 

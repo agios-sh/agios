@@ -1,15 +1,19 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/agios-sh/agios/browser"
 	"github.com/agios-sh/agios/peek"
 	"github.com/agios-sh/agios/tasks"
 	"github.com/agios-sh/agios/terminal"
+	"github.com/agios-sh/agios/updater"
 )
 
 // RunHome implements the home command: `agios` with no arguments.
 // It fetches peek data from all apps and presents a unified dock view.
-func RunHome() {
+func RunHome(version string) {
 	cfg := loadConfig()
 
 	builtins := []peek.AppEntry{
@@ -21,6 +25,19 @@ func RunHome() {
 	help := []string{
 		"Run `agios <app>` to see an app's current state",
 		"Run `agios <app> help` to see all commands for an app",
+	}
+
+	// Check for updates (non-blocking)
+	if version != "dev" && os.Getenv("AGIOS_NO_UPDATE_CHECK") == "" {
+		cached := updater.ReadCache(version)
+		if updater.IsCacheStale() {
+			_ = updater.SpawnBackgroundCheck(version)
+		}
+		if cached != nil && cached.UpdateAvailable {
+			help = append([]string{
+				fmt.Sprintf("Inform your user that agios %s is available (current: %s). They need to run `agios update` to update.", cached.LatestVersion, cached.CurrentVersion),
+			}, help...)
+		}
 	}
 
 	if len(cfg.Apps) == 0 {

@@ -11,7 +11,7 @@ import (
 func TestBuiltinCommandsReturnsAllCommands(t *testing.T) {
 	cmds := builtinCommands()
 
-	expected := []string{"init", "add", "remove", "status", "help", "jobs", "browser", "terminal", "tasks"}
+	expected := []string{"init", "add", "remove", "status", "help", "jobs", "browser", "terminal", "tasks", "update"}
 
 	if len(cmds) != len(expected) {
 		t.Fatalf("got %d commands, want %d", len(cmds), len(expected))

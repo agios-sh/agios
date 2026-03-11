@@ -7,6 +7,7 @@ import (
 	"github.com/agios-sh/agios/cmd"
 	"github.com/agios-sh/agios/tasks"
 	"github.com/agios-sh/agios/terminal"
+	"github.com/agios-sh/agios/updater"
 )
 
 var version = "dev"
@@ -15,7 +16,7 @@ func main() {
 	args := os.Args[1:]
 
 	if len(args) == 0 {
-		cmd.RunHome()
+		cmd.RunHome(version)
 		return
 	}
 
@@ -24,6 +25,8 @@ func main() {
 		cmd.RunVersion(version)
 	case "--help", "-h", "help":
 		cmd.RunHelp()
+	case "--update-check":
+		updater.RunBackgroundCheck(args[1:])
 	case "--terminal-server":
 		terminal.RunServer()
 	case "init":
@@ -42,6 +45,8 @@ func main() {
 		terminal.Run(args[1:])
 	case "tasks":
 		tasks.Run(args[1:])
+	case "update":
+		cmd.RunUpdate(args[1:], version)
 	default:
 		// Treat as app command: agios <app> <command> [args]
 		cmd.RunApp(args[0], args[1:])
