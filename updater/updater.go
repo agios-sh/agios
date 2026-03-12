@@ -28,12 +28,17 @@ const (
 	httpTimeout         = 30 * time.Second
 	maxDownloadSize     = 100 << 20 // 100 MB
 	maxBinarySize       = 100 << 20 // 100 MB
+	maxAPIResponseSize  = 5 << 20   // 5 MB
 	agiosDir            = ".agios"
 )
 
 // githubAPIURL is the endpoint for fetching the latest release.
 // Overridden in tests to point at a local HTTP server.
 var githubAPIURL = defaultGitHubAPIURL
+
+// enforceHTTPS controls whether download URLs must use HTTPS.
+// Disabled in tests where httptest servers use plain HTTP.
+var enforceHTTPS = true
 
 // CheckResult holds the outcome of a version check.
 type CheckResult struct {
@@ -75,7 +80,7 @@ func CheckLatest(currentVersion string) (*CheckResult, error) {
 	}
 
 	var release githubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+	if err := json.NewDecoder(io.LimitReader(resp.Body, maxAPIResponseSize)).Decode(&release); err != nil {
 		return nil, fmt.Errorf("decoding release: %w", err)
 	}
 
@@ -204,6 +209,14 @@ func Apply(result *CheckResult) error {
 		return fmt.Errorf("no download URL for %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
 
+	// Enforce HTTPS on all download URLs to prevent MITM
+	if err := requireHTTPS(result.DownloadURL); err != nil {
+		return fmt.Errorf("download URL: %w", err)
+	}
+	if err := requireHTTPS(result.ChecksumURL); err != nil {
+		return fmt.Errorf("checksum URL: %w", err)
+	}
+
 	// Download to temp file
 	archivePath, err := downloadToTemp(result.DownloadURL)
 	if err != nil {
@@ -311,6 +324,19 @@ func parseVersion(v string) semver {
 		result.nums[i], _ = strconv.Atoi(parts[i])
 	}
 	return result
+}
+
+func requireHTTPS(url string) error {
+	if !enforceHTTPS {
+		return nil
+	}
+	if url == "" {
+		return fmt.Errorf("URL is empty")
+	}
+	if !strings.HasPrefix(url, "https://") {
+		return fmt.Errorf("refusing non-HTTPS URL: %s", url)
+	}
+	return nil
 }
 
 func cachePath() string {

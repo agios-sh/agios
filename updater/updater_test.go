@@ -409,6 +409,11 @@ func fakeGitHubServer(t *testing.T, latestTag string, archiveBytes []byte) *http
 
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
+
+	// Disable HTTPS enforcement for test HTTP servers
+	enforceHTTPS = false
+	t.Cleanup(func() { enforceHTTPS = true })
+
 	return srv
 }
 
@@ -557,6 +562,18 @@ func TestApplyE2E(t *testing.T) {
 	}
 }
 
+func TestRequireHTTPS(t *testing.T) {
+	if err := requireHTTPS("https://example.com/file"); err != nil {
+		t.Errorf("expected no error for HTTPS URL, got: %v", err)
+	}
+	if err := requireHTTPS("http://example.com/file"); err == nil {
+		t.Error("expected error for HTTP URL")
+	}
+	if err := requireHTTPS(""); err == nil {
+		t.Error("expected error for empty URL")
+	}
+}
+
 func TestVerifyChecksumMismatch(t *testing.T) {
 	// Create a temp file with known content
 	tmp, err := os.CreateTemp("", "checksum-test-*")
@@ -576,6 +593,9 @@ func TestVerifyChecksumMismatch(t *testing.T) {
 	})
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
+
+	enforceHTTPS = false
+	defer func() { enforceHTTPS = true }()
 
 	err = verifyChecksum(tmp.Name(), srv.URL+"/checksums.txt")
 	if err == nil {
