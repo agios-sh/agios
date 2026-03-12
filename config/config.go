@@ -26,12 +26,11 @@ type TasksConfig struct {
 	Sources []TaskSource `yaml:"sources,omitempty"`
 }
 
-// TaskSource defines a single task source (e.g., local files, GitHub Issues).
+// TaskSource defines a single task source (e.g., local files).
 type TaskSource struct {
 	Name string `yaml:"name"`
-	Type string `yaml:"type"`           // "local" or "github"
-	Repo string `yaml:"repo,omitempty"` // github only: "owner/repo", auto-detected if empty
-	Dir  string `yaml:"dir,omitempty"`  // local only: path relative to project root
+	Type string `yaml:"type"`          // "local"
+	Dir  string `yaml:"dir,omitempty"` // path relative to project root
 }
 
 // Load walks up from startDir to find the nearest agios.yaml,

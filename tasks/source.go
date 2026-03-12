@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -98,8 +97,6 @@ func instantiateSource(s config.TaskSource, projectRoot string) (Source, error) 
 	switch s.Type {
 	case "local":
 		return newLocalSource(s.Name, s.Dir, projectRoot), nil
-	case "github":
-		return newGitHubSource(s.Name, s.Repo, projectRoot)
 	default:
 		return nil, fmt.Errorf("unknown source type: %q", s.Type)
 	}
@@ -107,116 +104,7 @@ func instantiateSource(s config.TaskSource, projectRoot string) (Source, error) 
 
 // autoDetectSources returns sources based on what's available in the environment.
 func autoDetectSources(projectRoot string) []Source {
-	sources := []Source{newLocalSource("local", "", projectRoot)}
-
-	if ghAvailable(projectRoot) {
-		if src, err := newGitHubSource("github", "", projectRoot); err == nil {
-			sources = append(sources, src)
-		}
-	}
-
-	return sources
-}
-
-// ghAvailable checks if the GitHub CLI is installed, a GitHub remote exists,
-// and the user is authenticated.
-func ghAvailable(projectRoot string) bool {
-	// Check gh CLI exists
-	if _, err := exec.LookPath("gh"); err != nil {
-		return false
-	}
-
-	// Check for GitHub remote
-	repo := detectGitHubRepo(projectRoot)
-	if repo == "" {
-		return false
-	}
-
-	// Check auth
-	cmd := exec.Command("gh", "auth", "status")
-	cmd.Dir = projectRoot
-	if err := cmd.Run(); err != nil {
-		return false
-	}
-
-	return true
-}
-
-// detectGitHubRepo parses `git remote -v` output for a github.com URL.
-// Returns "owner/repo" or empty string.
-func detectGitHubRepo(projectRoot string) string {
-	cmd := exec.Command("git", "remote", "-v")
-	cmd.Dir = projectRoot
-	out, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-	return parseGitHubRemote(string(out))
-}
-
-// parseGitHubRemote extracts "owner/repo" from git remote -v output.
-// Prefers the "origin" remote.
-func parseGitHubRemote(output string) string {
-	var fallback string
-	for _, line := range strings.Split(output, "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-
-		parts := strings.Fields(line)
-		if len(parts) < 2 {
-			continue
-		}
-
-		remoteName := parts[0]
-		url := parts[1]
-
-		repo := extractGitHubRepo(url)
-		if repo == "" {
-			continue
-		}
-
-		if remoteName == "origin" {
-			return repo
-		}
-		if fallback == "" {
-			fallback = repo
-		}
-	}
-	return fallback
-}
-
-// extractGitHubRepo extracts "owner/repo" from a GitHub URL.
-// Supports SSH aliases like git@github.com-alias:owner/repo.git
-func extractGitHubRepo(url string) string {
-	// SSH: git@github.com:owner/repo.git or git@github.com-alias:owner/repo.git
-	if strings.HasPrefix(url, "git@github.com") {
-		// Find the colon that separates host from path
-		idx := strings.Index(url, ":")
-		if idx >= 0 {
-			repo := url[idx+1:]
-			repo = strings.TrimSuffix(repo, ".git")
-			if strings.Contains(repo, "/") {
-				return repo
-			}
-		}
-	}
-
-	// HTTPS: https://github.com/owner/repo.git
-	for _, prefix := range []string{"https://github.com/", "http://github.com/"} {
-		if strings.HasPrefix(url, prefix) {
-			repo := strings.TrimPrefix(url, prefix)
-			repo = strings.TrimSuffix(repo, ".git")
-			// Remove trailing slashes or extra path segments
-			parts := strings.SplitN(repo, "/", 3)
-			if len(parts) >= 2 {
-				return parts[0] + "/" + parts[1]
-			}
-		}
-	}
-
-	return ""
+	return []Source{newLocalSource("local", "", projectRoot)}
 }
 
 // resolveDefault picks the default source from the list.
@@ -234,14 +122,7 @@ func resolveDefault(sources []Source, configDefault string) Source {
 		}
 	}
 
-	// Auto: pick first non-local source
-	for _, s := range sources {
-		if s.Type() != "local" {
-			return s
-		}
-	}
-
-	// Fall back to first source (local)
+	// Fall back to first source
 	return sources[0]
 }
 
