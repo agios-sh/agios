@@ -37,21 +37,51 @@ func (s *localSource) List(opts ListOptions) ([]TaskSummary, error) {
 		return nil, err
 	}
 
+	// For --status ready, build a set of open task IDs for blocking checks.
+	filterReady := strings.EqualFold(opts.Status, "ready")
+	var openIDs map[string]bool
+	if filterReady {
+		openIDs = make(map[string]bool)
+		for _, t := range tasks {
+			if strings.EqualFold(t.Status, "open") {
+				openIDs[t.ID] = true
+			}
+		}
+	}
+
 	var result []TaskSummary
 	for _, t := range tasks {
-		if opts.Status != "" && !strings.EqualFold(t.Status, opts.Status) {
-			continue
+		if filterReady {
+			// Ready = open and not blocked by any open task.
+			if !strings.EqualFold(t.Status, "open") {
+				continue
+			}
+			blocked := false
+			for _, bid := range t.BlockedBy {
+				if openIDs[bid] {
+					blocked = true
+					break
+				}
+			}
+			if blocked {
+				continue
+			}
+		} else {
+			if opts.Status != "" && !strings.EqualFold(t.Status, opts.Status) {
+				continue
+			}
 		}
 		if opts.Assignee != "" && !strings.EqualFold(t.Assignee, opts.Assignee) {
 			continue
 		}
 		result = append(result, TaskSummary{
-			ID:       t.ID,
-			Title:    t.Title,
-			Status:   t.Status,
-			Assignee: t.Assignee,
-			Updated:  t.Updated.Format(time.RFC3339),
-			Source:   s.name,
+			ID:        t.ID,
+			Title:     t.Title,
+			Status:    t.Status,
+			Assignee:  t.Assignee,
+			BlockedBy: t.BlockedBy,
+			Updated:   t.Updated.Format(time.RFC3339),
+			Source:    s.name,
 		})
 	}
 	return result, nil
@@ -82,14 +112,15 @@ func (s *localSource) Create(opts CreateOptions) (*Task, error) {
 	}
 
 	t := &Task{
-		ID:       id,
-		Title:    opts.Title,
-		Status:   status,
-		Assignee: opts.Assignee,
-		Body:     opts.Body,
-		Source:   s.name,
-		Created:  now,
-		Updated:  now,
+		ID:        id,
+		Title:     opts.Title,
+		Status:    status,
+		Assignee:  opts.Assignee,
+		BlockedBy: opts.BlockedBy,
+		Body:      opts.Body,
+		Source:    s.name,
+		Created:   now,
+		Updated:   now,
 	}
 
 	if err := s.writeTask(t); err != nil {
@@ -115,6 +146,9 @@ func (s *localSource) Update(id string, opts UpdateOptions) (*Task, error) {
 	}
 	if opts.Assignee != nil {
 		t.Assignee = *opts.Assignee
+	}
+	if opts.BlockedBy != nil {
+		t.BlockedBy = *opts.BlockedBy
 	}
 	t.Updated = time.Now()
 
@@ -264,6 +298,15 @@ func (s *localSource) parseTask(data []byte, id string) (*Task, error) {
 					t.Status = val
 				case "assignee":
 					t.Assignee = val
+				case "blocked_by":
+					if val != "" {
+						for _, b := range strings.Split(val, ",") {
+							b = strings.TrimSpace(b)
+							if b != "" {
+								t.BlockedBy = append(t.BlockedBy, b)
+							}
+						}
+					}
 				case "created":
 					if ts, err := time.Parse(time.RFC3339, val); err == nil {
 						t.Created = ts
@@ -325,6 +368,9 @@ func (s *localSource) writeTask(t *Task) error {
 	b.WriteString("status: " + t.Status + "\n")
 	if t.Assignee != "" {
 		b.WriteString("assignee: " + t.Assignee + "\n")
+	}
+	if len(t.BlockedBy) > 0 {
+		b.WriteString("blocked_by: " + strings.Join(t.BlockedBy, ", ") + "\n")
 	}
 	b.WriteString("created: " + t.Created.Format(time.RFC3339) + "\n")
 	b.WriteString("updated: " + t.Updated.Format(time.RFC3339) + "\n")

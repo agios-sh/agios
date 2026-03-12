@@ -32,7 +32,7 @@ func RunStatus() {
 		writePipelinedJSON(map[string]any{
 			"apps": []appStatus{browserStatus(), terminalStatus(), tasksStatus()},
 			"help": []string{
-				"No apps configured in the current directory. Run `agios add <app>` to register an app.",
+				"No apps configured in the current directory. Run `agios add <name>` to register an app.",
 			},
 		})
 		return
@@ -46,8 +46,8 @@ func RunStatus() {
 	writePipelinedJSON(map[string]any{
 		"apps": results,
 		"help": []string{
-			"Run `agios <app> <command>` to interact with a specific app",
-			"Run `agios add <app>` to register a new app",
+			"Run `agios <name> <command>` to interact with a specific app",
+			"Run `agios add <name>` to register a new app",
 		},
 	})
 }

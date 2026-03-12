@@ -14,7 +14,7 @@ import (
 // then adds the app to agios.yaml.
 func RunAdd(args []string) {
 	if len(args) == 0 {
-		writeError("Usage: agios add <app>", "INVALID_ARGS", nil,
+		writeError("Usage: agios add <name>", "INVALID_ARGS", nil,
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)

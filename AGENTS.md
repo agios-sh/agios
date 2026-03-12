@@ -2,10 +2,6 @@
 
 This file provides guidance to AI agents when working with code in this repository.
 
-## Tooling
-
-Run `./agios` to make use of the locally built AGI OS binary at the beginning of every new session, before doing anything else.
-
 ## Build & Development Commands
 
 ```bash
