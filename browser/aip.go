@@ -9,65 +9,79 @@ import (
 	"time"
 )
 
-// respondOverview shows the current browser state — like clicking Chrome in the dock.
-// If Chrome is running, shows tabs. If not, shows how to start it.
-func respondOverview() {
+// tabInfo holds Chrome tab metadata fetched from the DevTools HTTP endpoint.
+type tabInfo struct {
+	Title string `json:"title"`
+	URL   string `json:"url"`
+}
+
+// fetchTabs queries the Chrome DevTools /json endpoint and returns page tabs.
+// Returns nil if Chrome is unreachable or has no page tabs.
+func fetchTabs(port int) []tabInfo {
+	client := http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/json", port))
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	var targets []struct {
+		Type  string `json:"type"`
+		Title string `json:"title"`
+		URL   string `json:"url"`
+	}
+	if json.Unmarshal(body, &targets) != nil {
+		return nil
+	}
+	var tabs []tabInfo
+	for _, t := range targets {
+		if t.Type == "page" {
+			tabs = append(tabs, tabInfo{Title: t.Title, URL: t.URL})
+		}
+	}
+	return tabs
+}
+
+// readSessionInfo reads and validates session.json, returning nil if not running.
+func readSessionInfo() *sessionInfo {
 	sp, err := sessionPath()
 	if err != nil {
-		emitNotRunning()
-		return
+		return nil
 	}
-
 	data, err := os.ReadFile(sp)
 	if err != nil {
-		emitNotRunning()
-		return
+		return nil
 	}
-
 	var info sessionInfo
 	if err := json.Unmarshal(data, &info); err != nil || !isAlive(info) {
+		return nil
+	}
+	return &info
+}
+
+// respondOverview shows the current browser state — like clicking Chrome in the dock.
+func respondOverview() {
+	info := readSessionInfo()
+	if info == nil {
 		emitNotRunning()
 		return
 	}
 
-	// Chrome is running — fetch tabs via HTTP endpoint
-	type tabEntry struct {
+	tabs := fetchTabs(info.Port)
+
+	type indexedTab struct {
 		Index int    `json:"index"`
 		Title string `json:"title"`
 		URL   string `json:"url"`
 	}
-
-	var tabs []tabEntry
-	client := http.Client{Timeout: 2 * time.Second}
-	resp, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/json", info.Port))
-	if err == nil {
-		defer resp.Body.Close()
-		body, _ := io.ReadAll(resp.Body)
-		var targets []struct {
-			Type  string `json:"type"`
-			Title string `json:"title"`
-			URL   string `json:"url"`
-		}
-		if json.Unmarshal(body, &targets) == nil {
-			idx := 0
-			for _, t := range targets {
-				if t.Type == "page" {
-					tabs = append(tabs, tabEntry{Index: idx, Title: t.Title, URL: t.URL})
-					idx++
-				}
-			}
-		}
-	}
-
-	// Find which tab is active (first tab by default)
-	activeTab := 0
-	if len(tabs) > 0 {
-		activeTab = tabs[0].Index
+	var itabs []indexedTab
+	for i, t := range tabs {
+		itabs = append(itabs, indexedTab{Index: i, Title: t.Title, URL: t.URL})
 	}
 
 	emitResult(map[string]any{
-		"tabs":       tabs,
-		"active_tab": activeTab,
+		"tabs":       itabs,
+		"active_tab": 0,
 		"help": []string{
 			"Run `agios browser go <url>` to navigate",
 			"Run `agios browser page` to see page structure",
@@ -163,47 +177,12 @@ func respondHelp() {
 
 // PeekData returns a lightweight snapshot of the browser state for the home command.
 func PeekData() map[string]any {
-	sp, err := sessionPath()
-	if err != nil {
+	info := readSessionInfo()
+	if info == nil {
 		return nil
 	}
 
-	data, err := os.ReadFile(sp)
-	if err != nil {
-		return nil
-	}
-
-	var info sessionInfo
-	if err := json.Unmarshal(data, &info); err != nil || !isAlive(info) {
-		return nil
-	}
-
-	// Chrome is running — fetch tabs
-	type tabEntry struct {
-		Title string `json:"title"`
-		URL   string `json:"url"`
-	}
-
-	var tabs []tabEntry
-	client := http.Client{Timeout: 2 * time.Second}
-	resp, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/json", info.Port))
-	if err == nil {
-		defer resp.Body.Close()
-		body, _ := io.ReadAll(resp.Body)
-		var targets []struct {
-			Type  string `json:"type"`
-			Title string `json:"title"`
-			URL   string `json:"url"`
-		}
-		if json.Unmarshal(body, &targets) == nil {
-			for _, t := range targets {
-				if t.Type == "page" {
-					tabs = append(tabs, tabEntry{Title: t.Title, URL: t.URL})
-				}
-			}
-		}
-	}
-
+	tabs := fetchTabs(info.Port)
 	if tabs == nil {
 		return nil
 	}

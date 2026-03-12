@@ -36,7 +36,6 @@ type Session struct {
 	Info   sessionInfo
 }
 
-// browserDir returns the path to ~/.agios/browser/, creating it if needed.
 func browserDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -49,7 +48,6 @@ func browserDir() (string, error) {
 	return dir, nil
 }
 
-// sessionPath returns the path to session.json.
 func sessionPath() (string, error) {
 	dir, err := browserDir()
 	if err != nil {
@@ -391,7 +389,6 @@ func StopChrome() error {
 	return nil
 }
 
-// cleanSession removes session.json and handles.json.
 func cleanSession() {
 	if sp, err := sessionPath(); err == nil {
 		os.Remove(sp)

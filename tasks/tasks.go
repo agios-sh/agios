@@ -1,7 +1,6 @@
 package tasks
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 
@@ -81,26 +80,10 @@ func configDefault(cfg *config.Config) string {
 	return ""
 }
 
-func emitResult(v map[string]any) {
-	data, err := output.Process(v)
-	if err != nil {
-		enc := json.NewEncoder(os.Stdout)
-		enc.Encode(v)
-		return
-	}
-	os.Stdout.Write(data)
-	os.Stdout.Write([]byte("\n"))
-}
+const defaultHelp = "Run `agios tasks help` for usage information"
+
+func emitResult(v map[string]any) { output.EmitResult(v) }
 
 func emitError(msg, code string, help ...string) {
-	result := map[string]any{
-		"error": msg,
-		"code":  code,
-	}
-	if len(help) > 0 {
-		result["help"] = help
-	} else {
-		result["help"] = []string{"Run `agios tasks help` for usage information"}
-	}
-	emitResult(result)
+	output.EmitError(msg, code, defaultHelp, help...)
 }

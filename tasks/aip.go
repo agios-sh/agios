@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"strings"
 	"sync"
 	"time"
 )
@@ -148,7 +149,7 @@ func respondStatus() {
 		if def != nil {
 			defaultName = def.Name()
 		}
-		statusMsg = "Sources: " + join(sourceNames, ", ") + " (default: " + defaultName + ")"
+		statusMsg = "Sources: " + strings.Join(sourceNames, ", ") + " (default: " + defaultName + ")"
 	}
 
 	emitResult(map[string]any{
@@ -273,13 +274,3 @@ func taskCommands() []map[string]string {
 	}
 }
 
-func join(s []string, sep string) string {
-	if len(s) == 0 {
-		return ""
-	}
-	result := s[0]
-	for _, v := range s[1:] {
-		result += sep + v
-	}
-	return result
-}
