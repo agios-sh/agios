@@ -3,7 +3,10 @@ package updater
 import (
 	"archive/tar"
 	"archive/zip"
+	"bufio"
 	"compress/gzip"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,8 +23,11 @@ import (
 const (
 	defaultGitHubAPIURL = "https://api.github.com/repos/agios-sh/agios/releases/latest"
 	cacheFileName       = "update-check.json"
+	checksumsFile       = "checksums.txt"
 	cacheTTL            = 24 * time.Hour
 	httpTimeout         = 30 * time.Second
+	maxDownloadSize     = 100 << 20 // 100 MB
+	maxBinarySize       = 100 << 20 // 100 MB
 	agiosDir            = ".agios"
 )
 
@@ -35,6 +41,7 @@ type CheckResult struct {
 	LatestVersion   string `json:"latest_version"`
 	UpdateAvailable bool   `json:"update_available"`
 	DownloadURL     string `json:"download_url,omitempty"`
+	ChecksumURL     string `json:"checksum_url,omitempty"`
 }
 
 // CacheEntry is persisted to ~/.agios/update-check.json.
@@ -85,12 +92,14 @@ func CheckLatest(currentVersion string) (*CheckResult, error) {
 		UpdateAvailable: CompareVersions(release.TagName, currentVersion) > 0,
 	}
 
-	// Find download URL for this platform
+	// Find download URL and checksum URL for this platform
 	assetName := AssetName()
 	for _, a := range release.Assets {
 		if a.Name == assetName {
 			result.DownloadURL = a.BrowserDownloadURL
-			break
+		}
+		if a.Name == checksumsFile {
+			result.ChecksumURL = a.BrowserDownloadURL
 		}
 	}
 
@@ -202,6 +211,11 @@ func Apply(result *CheckResult) error {
 	}
 	defer os.Remove(archivePath)
 
+	// Verify checksum
+	if err := verifyChecksum(archivePath, result.ChecksumURL); err != nil {
+		return fmt.Errorf("checksum verification failed: %w", err)
+	}
+
 	// Extract binary
 	newBinaryPath, err := extractBinary(archivePath)
 	if err != nil {
@@ -232,19 +246,38 @@ func Apply(result *CheckResult) error {
 
 // CompareVersions compares two semver strings.
 // Returns -1 if a < b, 0 if a == b, 1 if a > b.
+// Pre-release versions sort before their release (e.g., v1.0.0-beta < v1.0.0).
 func CompareVersions(a, b string) int {
 	av := parseVersion(a)
 	bv := parseVersion(b)
 
 	for i := 0; i < 3; i++ {
-		if av[i] < bv[i] {
+		if av.nums[i] < bv.nums[i] {
 			return -1
 		}
-		if av[i] > bv[i] {
+		if av.nums[i] > bv.nums[i] {
 			return 1
 		}
 	}
-	return 0
+
+	// Same numeric version: pre-release < release
+	switch {
+	case av.prerelease == "" && bv.prerelease == "":
+		return 0
+	case av.prerelease != "" && bv.prerelease == "":
+		return -1
+	case av.prerelease == "" && bv.prerelease != "":
+		return 1
+	default:
+		// Both have pre-release: compare lexically
+		if av.prerelease < bv.prerelease {
+			return -1
+		}
+		if av.prerelease > bv.prerelease {
+			return 1
+		}
+		return 0
+	}
 }
 
 // AssetName returns the expected archive file name for the current platform.
@@ -256,15 +289,26 @@ func AssetName() string {
 	return fmt.Sprintf("agios_%s_%s%s", runtime.GOOS, runtime.GOARCH, ext)
 }
 
-// parseVersion extracts [major, minor, patch] from a version string.
-func parseVersion(v string) [3]int {
+type semver struct {
+	nums       [3]int
+	prerelease string
+}
+
+// parseVersion extracts major, minor, patch and pre-release from a version string.
+func parseVersion(v string) semver {
 	v = strings.TrimPrefix(v, "v")
+
+	var result semver
+
+	// Split off pre-release suffix: "1.2.3-beta.1" → "1.2.3", "beta.1"
+	if idx := strings.IndexByte(v, '-'); idx >= 0 {
+		result.prerelease = v[idx+1:]
+		v = v[:idx]
+	}
+
 	parts := strings.SplitN(v, ".", 3)
-	var result [3]int
 	for i := 0; i < 3 && i < len(parts); i++ {
-		// Strip any pre-release suffix (e.g., "1-beta")
-		num := strings.SplitN(parts[i], "-", 2)[0]
-		result[i], _ = strconv.Atoi(num)
+		result.nums[i], _ = strconv.Atoi(parts[i])
 	}
 	return result
 }
@@ -296,6 +340,56 @@ func writeCache(entry CacheEntry) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
+func verifyChecksum(archivePath, checksumURL string) error {
+	if checksumURL == "" {
+		return fmt.Errorf("no checksums file in release assets")
+	}
+
+	client := &http.Client{Timeout: httpTimeout}
+	resp, err := client.Get(checksumURL)
+	if err != nil {
+		return fmt.Errorf("downloading checksums: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("checksums download returned status %d", resp.StatusCode)
+	}
+
+	// Parse checksums file (format: "sha256hash  filename")
+	var expectedHash string
+	assetName := AssetName()
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) == 2 && fields[1] == assetName {
+			expectedHash = fields[0]
+			break
+		}
+	}
+	if expectedHash == "" {
+		return fmt.Errorf("no checksum found for %s", assetName)
+	}
+
+	f, err := os.Open(archivePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return err
+	}
+
+	actualHash := hex.EncodeToString(h.Sum(nil))
+	if actualHash != expectedHash {
+		return fmt.Errorf("expected %s, got %s", expectedHash, actualHash)
+	}
+
+	return nil
+}
+
 func downloadToTemp(url string) (string, error) {
 	client := &http.Client{Timeout: 5 * time.Minute}
 	resp, err := client.Get(url)
@@ -314,9 +408,14 @@ func downloadToTemp(url string) (string, error) {
 	}
 	defer tmp.Close()
 
-	if _, err := io.Copy(tmp, resp.Body); err != nil {
+	n, err := io.Copy(tmp, io.LimitReader(resp.Body, maxDownloadSize+1))
+	if err != nil {
 		os.Remove(tmp.Name())
 		return "", err
+	}
+	if n > maxDownloadSize {
+		os.Remove(tmp.Name())
+		return "", fmt.Errorf("download exceeds maximum size of %d bytes", maxDownloadSize)
 	}
 
 	return tmp.Name(), nil
@@ -360,10 +459,16 @@ func extractTarGz(archivePath string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			if _, err := io.Copy(tmp, tr); err != nil {
+			n, err := io.Copy(tmp, io.LimitReader(tr, maxBinarySize+1))
+			if err != nil {
 				tmp.Close()
 				os.Remove(tmp.Name())
 				return "", err
+			}
+			if n > maxBinarySize {
+				tmp.Close()
+				os.Remove(tmp.Name())
+				return "", fmt.Errorf("binary exceeds maximum size of %d bytes", maxBinarySize)
 			}
 			tmp.Close()
 			if err := os.Chmod(tmp.Name(), 0o755); err != nil {
@@ -399,10 +504,16 @@ func extractZip(archivePath string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			if _, err := io.Copy(tmp, rc); err != nil {
+			n, err := io.Copy(tmp, io.LimitReader(rc, maxBinarySize+1))
+			if err != nil {
 				tmp.Close()
 				os.Remove(tmp.Name())
 				return "", err
+			}
+			if n > maxBinarySize {
+				tmp.Close()
+				os.Remove(tmp.Name())
+				return "", fmt.Errorf("binary exceeds maximum size of %d bytes", maxBinarySize)
 			}
 			tmp.Close()
 			if err := os.Chmod(tmp.Name(), 0o755); err != nil {

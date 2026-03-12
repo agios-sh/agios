@@ -4,6 +4,8 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -35,6 +37,14 @@ func TestCompareVersions(t *testing.T) {
 		// Partial versions
 		{"v1", "v1.0.0", 0},
 		{"v1.2", "v1.2.0", 0},
+		// Pre-release sorts before release
+		{"v1.0.0-beta", "v1.0.0", -1},
+		{"v1.0.0", "v1.0.0-beta", 1},
+		{"v1.0.0-alpha", "v1.0.0-beta", -1},
+		{"v1.0.0-beta", "v1.0.0-alpha", 1},
+		{"v1.0.0-rc.1", "v1.0.0-rc.1", 0},
+		// Pre-release of higher version still beats release of lower
+		{"v2.0.0-beta", "v1.0.0", 1},
 	}
 
 	for _, tt := range tests {
@@ -47,23 +57,28 @@ func TestCompareVersions(t *testing.T) {
 
 func TestParseVersion(t *testing.T) {
 	tests := []struct {
-		input string
-		want  [3]int
+		input      string
+		wantNums   [3]int
+		wantPrerel string
 	}{
-		{"v1.2.3", [3]int{1, 2, 3}},
-		{"1.2.3", [3]int{1, 2, 3}},
-		{"v0.0.0", [3]int{0, 0, 0}},
-		{"v10.20.30", [3]int{10, 20, 30}},
-		{"v1", [3]int{1, 0, 0}},
-		{"v1.2", [3]int{1, 2, 0}},
-		{"v1.2.3-beta", [3]int{1, 2, 3}},
-		{"invalid", [3]int{0, 0, 0}},
+		{"v1.2.3", [3]int{1, 2, 3}, ""},
+		{"1.2.3", [3]int{1, 2, 3}, ""},
+		{"v0.0.0", [3]int{0, 0, 0}, ""},
+		{"v10.20.30", [3]int{10, 20, 30}, ""},
+		{"v1", [3]int{1, 0, 0}, ""},
+		{"v1.2", [3]int{1, 2, 0}, ""},
+		{"v1.2.3-beta", [3]int{1, 2, 3}, "beta"},
+		{"v1.2.3-rc.1", [3]int{1, 2, 3}, "rc.1"},
+		{"invalid", [3]int{0, 0, 0}, ""},
 	}
 
 	for _, tt := range tests {
 		got := parseVersion(tt.input)
-		if got != tt.want {
-			t.Errorf("parseVersion(%q) = %v, want %v", tt.input, got, tt.want)
+		if got.nums != tt.wantNums {
+			t.Errorf("parseVersion(%q).nums = %v, want %v", tt.input, got.nums, tt.wantNums)
+		}
+		if got.prerelease != tt.wantPrerel {
+			t.Errorf("parseVersion(%q).prerelease = %q, want %q", tt.input, got.prerelease, tt.wantPrerel)
 		}
 	}
 }
@@ -351,12 +366,19 @@ func createTestTarGz(t *testing.T, content []byte) []byte {
 }
 
 // fakeGitHubServer starts an httptest server that serves a GitHub-like
-// /releases/latest response and an asset download endpoint.
+// /releases/latest response, an asset download endpoint, and a checksums endpoint.
 func fakeGitHubServer(t *testing.T, latestTag string, archiveBytes []byte) *httptest.Server {
 	t.Helper()
 	mux := http.NewServeMux()
 
 	assetName := AssetName()
+
+	// Compute SHA256 checksum of the archive
+	h := sha256.New()
+	h.Write(archiveBytes)
+	checksum := hex.EncodeToString(h.Sum(nil))
+	checksumsContent := fmt.Sprintf("%s  %s\n", checksum, assetName)
+
 	mux.HandleFunc("/releases/latest", func(w http.ResponseWriter, r *http.Request) {
 		release := githubRelease{
 			TagName: latestTag,
@@ -364,6 +386,10 @@ func fakeGitHubServer(t *testing.T, latestTag string, archiveBytes []byte) *http
 				{
 					Name:               assetName,
 					BrowserDownloadURL: fmt.Sprintf("http://%s/download/%s", r.Host, assetName),
+				},
+				{
+					Name:               "checksums.txt",
+					BrowserDownloadURL: fmt.Sprintf("http://%s/download/checksums.txt", r.Host),
 				},
 			},
 		}
@@ -374,6 +400,11 @@ func fakeGitHubServer(t *testing.T, latestTag string, archiveBytes []byte) *http
 	mux.HandleFunc("/download/"+assetName, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.Write(archiveBytes)
+	})
+
+	mux.HandleFunc("/download/checksums.txt", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte(checksumsContent))
 	})
 
 	srv := httptest.NewServer(mux)
@@ -409,6 +440,9 @@ func TestCheckLatestE2E(t *testing.T) {
 	}
 	if result.DownloadURL == "" {
 		t.Error("expected DownloadURL to be set")
+	}
+	if result.ChecksumURL == "" {
+		t.Error("expected ChecksumURL to be set")
 	}
 
 	// Verify cache was written
@@ -466,6 +500,7 @@ func TestApplyE2E(t *testing.T) {
 		LatestVersion:   "v2.0.0",
 		UpdateAvailable: true,
 		DownloadURL:     srv.URL + "/download/" + assetName,
+		ChecksumURL:     srv.URL + "/download/checksums.txt",
 	}
 
 	// Patch os.Executable to return our fake binary.
@@ -476,6 +511,11 @@ func TestApplyE2E(t *testing.T) {
 		t.Fatalf("downloadToTemp: %v", err)
 	}
 	defer os.Remove(archivePath)
+
+	// Verify checksum
+	if err := verifyChecksum(archivePath, result.ChecksumURL); err != nil {
+		t.Fatalf("verifyChecksum: %v", err)
+	}
 
 	// Extract
 	newBinaryPath, err := extractBinary(archivePath)
@@ -514,5 +554,38 @@ func TestApplyE2E(t *testing.T) {
 	}
 	if info.Mode()&0o111 == 0 {
 		t.Error("expected executable permissions on replaced binary")
+	}
+}
+
+func TestVerifyChecksumMismatch(t *testing.T) {
+	// Create a temp file with known content
+	tmp, err := os.CreateTemp("", "checksum-test-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmp.Name())
+	tmp.Write([]byte("real content"))
+	tmp.Close()
+
+	// Serve a checksums file with a wrong hash
+	assetName := AssetName()
+	wrongHash := "0000000000000000000000000000000000000000000000000000000000000000"
+	mux := http.NewServeMux()
+	mux.HandleFunc("/checksums.txt", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "%s  %s\n", wrongHash, assetName)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	err = verifyChecksum(tmp.Name(), srv.URL+"/checksums.txt")
+	if err == nil {
+		t.Fatal("expected error for checksum mismatch")
+	}
+}
+
+func TestVerifyChecksumNoURL(t *testing.T) {
+	err := verifyChecksum("/dev/null", "")
+	if err == nil {
+		t.Fatal("expected error when checksum URL is empty")
 	}
 }
