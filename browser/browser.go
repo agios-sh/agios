@@ -75,9 +75,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		doGo(sess, args[1])
 
@@ -93,9 +90,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		doPage(sess, actionsOnly)
 
@@ -112,9 +106,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		doClick(sess, args[1])
 
@@ -131,9 +122,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		text := strings.Join(args[2:], " ")
 		doInput(sess, args[1], text)
@@ -151,9 +139,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		value := strings.Join(args[2:], " ")
 		doSet(sess, args[1], value)
@@ -171,9 +156,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		doKey(sess, args[1])
 
@@ -190,9 +172,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		doHover(sess, args[1])
 
@@ -206,9 +185,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		doScroll(sess, target)
 
@@ -225,9 +201,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		value := strings.Join(args[2:], " ")
 		doPick(sess, args[1], value)
@@ -238,9 +211,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		doContent(sess)
 
@@ -256,9 +226,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		doCapture(sess, outPath)
 
@@ -276,9 +243,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		doTabs(sess, sub, tabArgs)
 
@@ -294,9 +258,6 @@ func Run(args []string) {
 			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
 			os.Exit(1)
 		}
-		// NOTE: intentionally not calling sess.Cancel() — process exit closes
-		// the WebSocket connection without sending Target.closeTarget, so the
-		// Chrome tab stays alive for subsequent agios invocations.
 		_ = sess.Cancel
 		js := strings.Join(args[1:], " ")
 		doRun(sess, js)

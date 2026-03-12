@@ -340,6 +340,11 @@ func Dial() (*Session, error) {
 }
 
 // RequireSession dials Chrome or returns a helpful error.
+//
+// Callers should NOT call sess.Cancel() — process exit closes the WebSocket
+// connection without sending Target.closeTarget, keeping the Chrome tab alive
+// for subsequent agios invocations. Use `_ = sess.Cancel` to silence the
+// unused-variable linter.
 func RequireSession() (*Session, error) {
 	sess, err := Dial()
 	if err != nil {
