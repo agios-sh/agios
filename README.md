@@ -90,7 +90,7 @@ AGI OS includes three built-in apps that don't require separate binaries:
 
 - **`agios browser`** — headless browser automation via Chrome DevTools Protocol
 - **`agios terminal`** — persistent terminal sessions with PTY support
-- **`agios tasks`** — task tracking (local files and GitHub Issues)
+- **`agios tasks`** — task tracking (local files)
 
 ### Key features
 

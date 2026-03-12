@@ -19,7 +19,7 @@ func RunHome(version string) {
 	builtins := []peek.AppEntry{
 		{Name: "browser", Summary: "Built-in browser for web automation", Peek: browser.PeekData()},
 		{Name: "terminal", Summary: "Built-in terminal for interactive shell sessions", Peek: terminal.PeekData()},
-		{Name: "tasks", Summary: "Built-in task tracking across local files and GitHub Issues", Peek: tasks.PeekData()},
+		{Name: "tasks", Summary: "Built-in task tracking using local files", Peek: tasks.PeekData()},
 	}
 
 	help := []string{

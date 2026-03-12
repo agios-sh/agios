@@ -125,7 +125,7 @@ func respondStatus() {
 	if err != nil {
 		emitResult(map[string]any{
 			"name":        "tasks",
-			"description": "Built-in task tracking across local files and GitHub Issues",
+			"description": "Built-in task tracking using local files",
 			"version":     "1.0.0",
 			"status":      "error",
 			"status_msg":  "Failed to resolve sources: " + err.Error(),
@@ -153,7 +153,7 @@ func respondStatus() {
 
 	emitResult(map[string]any{
 		"name":        "tasks",
-		"description": "Built-in task tracking across local files and GitHub Issues",
+		"description": "Built-in task tracking using local files",
 		"version":     "1.0.0",
 		"status":      status,
 		"status_msg":  statusMsg,
@@ -166,7 +166,7 @@ func respondHelp() {
 	emitResult(map[string]any{
 		"name":  "tasks",
 		"usage": "agios tasks <command> [args]",
-		"description": "Built-in task tracking with support for multiple sources (local markdown files, GitHub Issues). " +
+		"description": "Built-in task tracking using local markdown files. " +
 			"All commands accept `--source <name>` to target a specific source.",
 		"commands": []map[string]string{
 			{"name": "list", "usage": "agios tasks list [--status <s>] [--assignee <a>] [--source <src>]", "summary": "List tasks from the default (or specified) source."},
