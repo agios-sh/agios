@@ -11,8 +11,10 @@ import (
 
 const (
 	// DefaultRows and DefaultCols define the default PTY dimensions.
-	DefaultRows = 24
-	DefaultCols = 80
+	// Sized for agent consumers — larger than a standard 24×80 terminal
+	// so AI tools can read more output without truncation.
+	DefaultRows = 80
+	DefaultCols = 120
 )
 
 // ScreenBuffer wraps a virtual terminal emulator that maintains true screen state.
