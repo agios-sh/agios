@@ -13,8 +13,8 @@ It defines and uses the **Agent Interface Protocol (AIP)** — a set of conventi
 
 ```
 agios                              # What's going on? (peek all apps)
-agios <app>                        # Open a specific app
-agios <app> <command> [args]       # Run any app command
+agios <name>                       # Open a specific app
+agios <name> <command> [args]      # Run any app command
 ```
 
 ## Install
@@ -104,15 +104,15 @@ AGI OS includes three built-in apps that don't require separate binaries:
 ```
 agios                           # Home — peek all apps
 agios init                      # Create agios.yaml in current directory
-agios add <app>                 # Add an app
-agios remove <app>              # Remove an app
+agios add <name>                # Add an app
+agios remove <name>             # Remove an app
 agios status                    # Health check all apps
 agios update                    # Check for and install updates
 agios update check              # Check for updates without installing
 agios help                      # Show available commands
 agios jobs                      # List backgrounded jobs
 agios jobs <id>                 # Get job status/result
-agios <app> <command> [args]    # Route command to app
+agios <name> <command> [args]   # Route command to app
 ```
 
 ## Building an AIP app
@@ -151,7 +151,7 @@ my-app help
     {
       "name": "list",
       "description": "List items",
-      "usage": "my-app list [--status <status>]"
+      "usage": "my-app list [--status open|closed]"
     },
     {
       "name": "create",
