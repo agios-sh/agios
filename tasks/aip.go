@@ -273,4 +273,3 @@ func taskCommands() []map[string]string {
 		{"name": "help", "usage": "agios tasks help", "summary": "AIP help"},
 	}
 }
-

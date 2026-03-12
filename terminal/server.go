@@ -438,4 +438,3 @@ func ActiveSessionCount() int {
 
 	return len(resp.Sessions)
 }
-
