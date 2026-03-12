@@ -9,7 +9,6 @@ import (
 	"github.com/agios-sh/agios/output"
 )
 
-// Run dispatches tasks subcommands.
 func Run(args []string) {
 	if len(args) == 0 {
 		respondOverview()

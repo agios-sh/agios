@@ -179,7 +179,6 @@ func (s *localSource) Summary() (map[string]int, error) {
 	return counts, nil
 }
 
-// readAll reads all task files from the directory.
 func (s *localSource) readAll() ([]Task, error) {
 	entries, err := os.ReadDir(s.dir)
 	if err != nil {
@@ -208,12 +207,10 @@ func (s *localSource) readAll() ([]Task, error) {
 	return tasks, nil
 }
 
-// taskPath returns the file path for a given task ID.
 func (s *localSource) taskPath(id string) string {
 	return filepath.Join(s.dir, id+".md")
 }
 
-// nextID scans existing files and returns the next sequential integer ID.
 func (s *localSource) nextID() string {
 	entries, err := os.ReadDir(s.dir)
 	if err != nil {
@@ -233,7 +230,6 @@ func (s *localSource) nextID() string {
 	return strconv.Itoa(maxID + 1)
 }
 
-// parseTask parses a markdown file with YAML frontmatter into a Task.
 func (s *localSource) parseTask(data []byte, id string) (*Task, error) {
 	content := string(data)
 
@@ -293,7 +289,6 @@ func (s *localSource) parseTask(data []byte, id string) (*Task, error) {
 	return t, nil
 }
 
-// parseComments parses the comments section of a task file.
 func parseComments(section string) []Comment {
 	var comments []Comment
 	parts := strings.Split(section, "\n### ")
@@ -322,7 +317,6 @@ func parseComments(section string) []Comment {
 	return comments
 }
 
-// writeTask writes a task to its markdown file.
 func (s *localSource) writeTask(t *Task) error {
 	var b strings.Builder
 

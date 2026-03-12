@@ -8,7 +8,6 @@ import (
 	"github.com/agios-sh/agios/config"
 )
 
-// Source is the interface that all task sources must implement.
 type Source interface {
 	Name() string
 	Type() string
@@ -21,7 +20,6 @@ type Source interface {
 	Summary() (map[string]int, error)
 }
 
-// Task represents a full task with all details.
 type Task struct {
 	ID       string    `json:"id"`
 	Title    string    `json:"title"`
@@ -35,7 +33,6 @@ type Task struct {
 	Comments []Comment `json:"comments,omitempty"`
 }
 
-// TaskSummary is a compact representation for list views.
 type TaskSummary struct {
 	ID       string `json:"id"`
 	Title    string `json:"title"`
@@ -45,20 +42,17 @@ type TaskSummary struct {
 	Source   string `json:"source"`
 }
 
-// Comment represents a comment on a task.
 type Comment struct {
 	Author    string    `json:"author"`
 	Body      string    `json:"body"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
-// ListOptions for filtering task lists.
 type ListOptions struct {
 	Status   string
 	Assignee string
 }
 
-// CreateOptions for creating a new task.
 type CreateOptions struct {
 	Title    string
 	Body     string
@@ -66,7 +60,7 @@ type CreateOptions struct {
 	Assignee string
 }
 
-// UpdateOptions for updating a task. Nil fields are not changed.
+// Nil fields are not changed.
 type UpdateOptions struct {
 	Title    *string
 	Body     *string
