@@ -1,6 +1,6 @@
 #!/bin/sh
 # AGI OS (agios) installer for macOS and Linux
-# Usage: curl -fsSL https://install.agios.sh/install.sh | sh
+# Usage: curl -fsSL https://agios.sh/install.sh | sh
 set -e
 
 REPO="agios-sh/agios"

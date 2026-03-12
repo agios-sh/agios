@@ -1,5 +1,5 @@
 # AGI OS (agios) installer for Windows
-# Usage: irm https://install.agios.sh/install.ps1 | iex
+# Usage: irm https://agios.sh/install.ps1 | iex
 $ErrorActionPreference = "Stop"
 
 $Repo = "agios-sh/agios"
