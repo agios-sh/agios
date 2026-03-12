@@ -1,7 +1,6 @@
 package browser
 
 import (
-	"encoding/json"
 	"os"
 	"strings"
 
@@ -70,12 +69,7 @@ func Run(args []string) {
 			)
 			os.Exit(1)
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		doGo(sess, args[1])
 
 	case "page":
@@ -85,12 +79,7 @@ func Run(args []string) {
 				actionsOnly = true
 			}
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		doPage(sess, actionsOnly)
 
 	case "click":
@@ -101,12 +90,7 @@ func Run(args []string) {
 			)
 			os.Exit(1)
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		doClick(sess, args[1])
 
 	case "input":
@@ -117,12 +101,7 @@ func Run(args []string) {
 			)
 			os.Exit(1)
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		text := strings.Join(args[2:], " ")
 		doInput(sess, args[1], text)
 
@@ -134,12 +113,7 @@ func Run(args []string) {
 			)
 			os.Exit(1)
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		value := strings.Join(args[2:], " ")
 		doSet(sess, args[1], value)
 
@@ -151,12 +125,7 @@ func Run(args []string) {
 			)
 			os.Exit(1)
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		doKey(sess, args[1])
 
 	case "hover":
@@ -167,12 +136,7 @@ func Run(args []string) {
 			)
 			os.Exit(1)
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		doHover(sess, args[1])
 
 	case "scroll":
@@ -180,12 +144,7 @@ func Run(args []string) {
 		if len(args) >= 2 {
 			target = args[1]
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		doScroll(sess, target)
 
 	case "pick":
@@ -196,22 +155,12 @@ func Run(args []string) {
 			)
 			os.Exit(1)
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		value := strings.Join(args[2:], " ")
 		doPick(sess, args[1], value)
 
 	case "content":
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		doContent(sess)
 
 	case "capture":
@@ -221,12 +170,7 @@ func Run(args []string) {
 				outPath = args[i+2]
 			}
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		doCapture(sess, outPath)
 
 	case "tabs":
@@ -238,12 +182,7 @@ func Run(args []string) {
 		if len(args) >= 3 {
 			tabArgs = args[2:]
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		doTabs(sess, sub, tabArgs)
 
 	case "run":
@@ -253,12 +192,7 @@ func Run(args []string) {
 			)
 			os.Exit(1)
 		}
-		sess, err := RequireSession()
-		if err != nil {
-			emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
-			os.Exit(1)
-		}
-		_ = sess.Cancel
+		sess := requireSessionOrExit()
 		js := strings.Join(args[1:], " ")
 		doRun(sess, js)
 
@@ -280,27 +214,23 @@ func Run(args []string) {
 }
 
 // emitResult outputs a result through the agios output pipeline.
-func emitResult(v map[string]any) {
-	data, err := output.Process(v)
+const defaultHelp = "Run `agios browser help` for usage information"
+
+// requireSessionOrExit acquires a browser session, exiting on failure.
+// The returned cancel func is intentionally unused — process exit closes the
+// WebSocket without killing the Chrome tab.
+func requireSessionOrExit() *Session {
+	sess, err := RequireSession()
 	if err != nil {
-		enc := json.NewEncoder(os.Stdout)
-		enc.Encode(v)
-		return
+		emitError(err.Error(), "NO_SESSION", "Run `agios browser open` first")
+		os.Exit(1)
 	}
-	os.Stdout.Write(data)
-	os.Stdout.Write([]byte("\n"))
+	_ = sess.Cancel
+	return sess
 }
 
-// emitError outputs an AIP-compliant error response.
+func emitResult(v map[string]any) { output.EmitResult(v) }
+
 func emitError(msg, code string, help ...string) {
-	result := map[string]any{
-		"error": msg,
-		"code":  code,
-	}
-	if len(help) > 0 {
-		result["help"] = help
-	} else {
-		result["help"] = []string{"Run `agios browser help` for usage information"}
-	}
-	emitResult(result)
+	output.EmitError(msg, code, defaultHelp, help...)
 }

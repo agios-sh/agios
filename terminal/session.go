@@ -9,6 +9,14 @@ import (
 	"github.com/vito/midterm"
 )
 
+const (
+	// DefaultRows and DefaultCols define the default PTY dimensions.
+	// Sized for agent consumers — larger than a standard 24×80 terminal
+	// so AI tools can read more output without truncation.
+	DefaultRows = 80
+	DefaultCols = 120
+)
+
 // ScreenBuffer wraps a virtual terminal emulator that maintains true screen state.
 // PTY output is fed in as raw bytes; reads return the current screen content as
 // plain text with all ANSI escape sequences already interpreted.
@@ -19,7 +27,6 @@ type ScreenBuffer struct {
 	notify chan struct{}
 }
 
-// NewScreenBuffer creates a screen buffer with the given dimensions.
 func NewScreenBuffer(rows, cols int) *ScreenBuffer {
 	return &ScreenBuffer{
 		vt:     midterm.NewTerminal(rows, cols),
@@ -27,7 +34,6 @@ func NewScreenBuffer(rows, cols int) *ScreenBuffer {
 	}
 }
 
-// Write feeds raw PTY output into the virtual terminal.
 func (sb *ScreenBuffer) Write(p []byte) (int, error) {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
@@ -44,7 +50,6 @@ func (sb *ScreenBuffer) Write(p []byte) (int, error) {
 	return n, err
 }
 
-// Screen returns the current screen state (text + cursor position).
 func (sb *ScreenBuffer) Screen() screenState {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
@@ -52,14 +57,12 @@ func (sb *ScreenBuffer) Screen() screenState {
 	return screenToState(sb.vt)
 }
 
-// Writes returns the monotonic write counter.
 func (sb *ScreenBuffer) Writes() uint64 {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
 	return sb.writes
 }
 
-// WaitForData blocks until new data is written or the timeout expires.
 func (sb *ScreenBuffer) WaitForData(timeout time.Duration) bool {
 	select {
 	case <-sb.notify:
@@ -69,7 +72,6 @@ func (sb *ScreenBuffer) WaitForData(timeout time.Duration) bool {
 	}
 }
 
-// Resize changes the virtual terminal dimensions.
 func (sb *ScreenBuffer) Resize(rows, cols int) {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
@@ -137,7 +139,6 @@ type SessionInfo struct {
 	Exited    bool   `json:"exited"`
 }
 
-// Info returns a serializable snapshot of the session.
 func (s *PTYSession) Info() SessionInfo {
 	return SessionInfo{
 		ID:        s.ID,
@@ -149,7 +150,6 @@ func (s *PTYSession) Info() SessionInfo {
 	}
 }
 
-// ReadScreen returns the current screen state.
 func (s *PTYSession) ReadScreen() screenState {
 	return s.screen.Screen()
 }
@@ -210,7 +210,6 @@ type SessionManager struct {
 	nextID   int
 }
 
-// NewSessionManager creates a new session manager.
 func NewSessionManager() *SessionManager {
 	return &SessionManager{
 		sessions: make(map[int]*PTYSession),
@@ -218,7 +217,6 @@ func NewSessionManager() *SessionManager {
 	}
 }
 
-// Start creates a new session and sets it as active.
 func (sm *SessionManager) Start(name, shell, dir string) (*PTYSession, error) {
 	sm.mu.Lock()
 	id := sm.nextID
@@ -238,7 +236,6 @@ func (sm *SessionManager) Start(name, shell, dir string) (*PTYSession, error) {
 	return sess, nil
 }
 
-// Switch sets the active session.
 func (sm *SessionManager) Switch(id int) error {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
@@ -269,7 +266,6 @@ func (sm *SessionManager) Get(id int) (*PTYSession, error) {
 	return sess, nil
 }
 
-// List returns info for all sessions.
 func (sm *SessionManager) List() ([]SessionInfo, int) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
@@ -306,7 +302,6 @@ func (sm *SessionManager) Kill(id int) error {
 	return nil
 }
 
-// KillAll terminates all sessions.
 func (sm *SessionManager) KillAll() {
 	sm.mu.Lock()
 	sessions := make(map[int]*PTYSession)
@@ -322,7 +317,6 @@ func (sm *SessionManager) KillAll() {
 	}
 }
 
-// Count returns the number of active sessions.
 func (sm *SessionManager) Count() int {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()

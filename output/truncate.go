@@ -20,7 +20,6 @@ const (
 	TempFileTTL = 1 * time.Hour
 )
 
-// agiosDir returns the path to ~/.agios/, creating it if necessary.
 func agiosDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -29,7 +28,6 @@ func agiosDir() (string, error) {
 	return filepath.Join(home, ".agios"), nil
 }
 
-// tempDir returns the path to ~/.agios/tmp/, creating it if necessary.
 func tempDir() (string, error) {
 	base, err := agiosDir()
 	if err != nil {
@@ -42,7 +40,6 @@ func tempDir() (string, error) {
 	return dir, nil
 }
 
-// spillToFile writes the full value to a temp file and returns the file path.
 func spillToFile(value string) (string, error) {
 	dir, err := tempDir()
 	if err != nil {

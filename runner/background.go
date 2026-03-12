@@ -6,10 +6,7 @@ import (
 	"os/exec"
 )
 
-// ExecBackground starts a subprocess that is detached from the parent process.
-// The subprocess's stdout is redirected to the given output file.
-// The subprocess survives the parent process exiting.
-// Returns the started process (for testing) or an error.
+// ExecBackground runs a detached subprocess that survives the parent, for background job execution.
 func ExecBackground(binPath string, args []string, outputPath string) (*os.Process, error) {
 	outFile, err := os.Create(outputPath)
 	if err != nil {

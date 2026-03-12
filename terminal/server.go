@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"strconv"
 	"syscall"
 	"time"
 )
@@ -46,7 +45,6 @@ type Response struct {
 	Error     string        `json:"error,omitempty"`
 }
 
-// terminalDir returns the path to ~/.agios/terminal/, creating it if needed.
 func terminalDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -59,7 +57,6 @@ func terminalDir() (string, error) {
 	return dir, nil
 }
 
-// serverInfoPath returns the path to server.json.
 func serverInfoPath() (string, error) {
 	dir, err := terminalDir()
 	if err != nil {
@@ -68,7 +65,6 @@ func serverInfoPath() (string, error) {
 	return filepath.Join(dir, "server.json"), nil
 }
 
-// socketPath returns the path to the Unix domain socket.
 func socketPath() (string, error) {
 	dir, err := terminalDir()
 	if err != nil {
@@ -227,10 +223,10 @@ func handleConnection(conn net.Conn, mgr *SessionManager) {
 			rows := req.Rows
 			cols := req.Cols
 			if rows <= 0 {
-				rows = 80
+				rows = DefaultRows
 			}
 			if cols <= 0 {
-				cols = 120
+				cols = DefaultCols
 			}
 			if err := sess.pty.Resize(rows, cols); err != nil {
 				resp = Response{OK: false, Error: err.Error()}
@@ -260,7 +256,6 @@ func writeResponse(conn net.Conn, resp Response) {
 	enc.Encode(resp)
 }
 
-// loadServerInfo reads server.json.
 func loadServerInfo() (serverInfo, error) {
 	var info serverInfo
 	infoPath, err := serverInfoPath()
@@ -442,9 +437,4 @@ func ActiveSessionCount() int {
 	}
 
 	return len(resp.Sessions)
-}
-
-// FormatPID formats a PID as string for use in status messages.
-func FormatPID(pid int) string {
-	return strconv.Itoa(pid)
 }

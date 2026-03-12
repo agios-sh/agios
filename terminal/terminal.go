@@ -1,7 +1,6 @@
 package terminal
 
 import (
-	"encoding/json"
 	"os"
 	"strconv"
 	"strings"
@@ -119,8 +118,8 @@ func Run(args []string) {
 
 	case "resize":
 		sessionID := 0
-		rows := 24
-		cols := 80
+		rows := DefaultRows
+		cols := DefaultCols
 		for i := 1; i < len(args); i++ {
 			switch args[i] {
 			case "--session":
@@ -167,30 +166,12 @@ func RunServer() {
 	runServer()
 }
 
-// emitResult outputs a result through the agios output pipeline.
-func emitResult(v map[string]any) {
-	data, err := output.Process(v)
-	if err != nil {
-		enc := json.NewEncoder(os.Stdout)
-		enc.Encode(v)
-		return
-	}
-	os.Stdout.Write(data)
-	os.Stdout.Write([]byte("\n"))
-}
+const defaultHelp = "Run `agios terminal help` for usage information"
 
-// emitError outputs an AIP-compliant error response.
+func emitResult(v map[string]any) { output.EmitResult(v) }
+
 func emitError(msg, code string, help ...string) {
-	result := map[string]any{
-		"error": msg,
-		"code":  code,
-	}
-	if len(help) > 0 {
-		result["help"] = help
-	} else {
-		result["help"] = []string{"Run `agios terminal help` for usage information"}
-	}
-	emitResult(result)
+	output.EmitError(msg, code, defaultHelp, help...)
 }
 
 // respondStatus returns the AIP status response for the terminal app.
