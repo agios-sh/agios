@@ -223,10 +223,10 @@ func handleConnection(conn net.Conn, mgr *SessionManager) {
 			rows := req.Rows
 			cols := req.Cols
 			if rows <= 0 {
-				rows = DefaultRows
+				rows = 80
 			}
 			if cols <= 0 {
-				cols = DefaultCols
+				cols = 120
 			}
 			if err := sess.pty.Resize(rows, cols); err != nil {
 				resp = Response{OK: false, Error: err.Error()}
