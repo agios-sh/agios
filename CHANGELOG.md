@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.0](https://github.com/agios-sh/agios/compare/v1.0.0...v1.1.0) (2026-03-12)
+
+
+### Features
+
+* remove GitHub integration from tasks ([2e4acce](https://github.com/agios-sh/agios/commit/2e4accea5a74506e54aaa0bf07b65bfbc2de1f00))
+* remove github integration from the tasks app ([12def57](https://github.com/agios-sh/agios/commit/12def57f2757f602690b273d0c7e6cfcf4b0cbc5))
+* **tasks:** add ready filter and blocked-by ([#8](https://github.com/agios-sh/agios/issues/8)) ([49491a9](https://github.com/agios-sh/agios/commit/49491a9fb5c04205e40442c7f80c627a6a25fb98))
+
 ## 1.0.0 (2026-03-12)
 
 
