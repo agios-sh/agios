@@ -22,13 +22,13 @@ agios <name> <command> [args]      # Run any app command
 **macOS / Linux**
 
 ```sh
-curl -fsSL https://install.agios.sh/install.sh | sh
+curl -fsSL https://agios.sh/install.sh | sh
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-irm https://install.agios.sh/install.ps1 | iex
+irm https://agios.sh/install.ps1 | iex
 ```
 
 **From source**

@@ -53,13 +53,12 @@ Two install scripts checked into the main repo under `install/`:
 
 Install commands:
 
-- macOS/Linux: `curl -fsSL https://install.agios.sh | bash`
-- Windows: `powershell -c "irm install.agios.sh/install.ps1 | iex"`
+- macOS/Linux: `curl -fsSL https://agios.sh | bash`
+- Windows: `powershell -c "irm agios.sh/install.ps1 | iex"`
 
-**Hosting:** `install.agios.sh` is a subdomain pointed at GitHub Pages from this main (open source) repo. The root `agios.sh` domain is a separate private repo hosting the Next.js landing page. DNS setup:
+**Hosting:** `agios.sh` is the apex domain pointed at GitHub Pages from this main (open source) repo. DNS setup:
 
-- `agios.sh` → landing page (Vercel/Netlify/etc, private repo)
-- `install.agios.sh` → GitHub Pages (main repo, `docs/` folder)
+- `agios.sh` → GitHub Pages (main repo, `docs/` folder)
 
 ### 2.4 CI Pipeline
 
