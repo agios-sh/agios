@@ -29,7 +29,7 @@ Integration tests (`integration_test.go`) compile both `agios` and `testdata/moc
 - **`cmd/`** — Command handlers. Each command is a standalone function (e.g., `RunInit`, `RunAdd`, `RunStatus`).
 - **`config/`** — Loads `agios.yaml` by walking up the directory tree (like git finds `.git/`). Config is a simple `apps:` list.
 - **`runner/`** — Subprocess execution with 5s timeout, JSONL protocol parsing (progress lines + final result), background job management (`~/.agios/jobs/`), and binary path resolution.
-- **`output/`** — Pipeline: normalize → truncate strings >4096 chars to temp files (`~/.agios/tmp/`) → convert to TOON or JSON format.
+- **`output/`** — Pipeline: normalize → truncate strings >4096 chars to temp files (`~/.agios/tmp/`) → convert to TOON or JSON format. Also provides shared `EmitResult`/`EmitError` helpers for AIP-compliant output.
 - **`peek/`** — Concurrent fetch of free-form state snapshots from all configured apps via errgroup.
 - **`updater/`** — Self-update mechanism: checks GitHub releases for newer versions, downloads archives with SHA-256 checksum verification, and atomically replaces the binary. Caches check results in `~/.agios/update-check.json` (24h TTL) and supports background update checks.
 
