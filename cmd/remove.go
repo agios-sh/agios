@@ -11,7 +11,7 @@ import (
 // It removes an app from agios.yaml. Errors if the app is not listed.
 func RunRemove(args []string) {
 	if len(args) == 0 {
-		writeError("Usage: agios remove <app>", "INVALID_ARGS", nil,
+		writeError("Usage: agios remove <name>", "INVALID_ARGS", nil,
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)
@@ -51,7 +51,7 @@ func RunRemove(args []string) {
 	writePipelinedJSON(map[string]any{
 		"message": fmt.Sprintf("Removed %q from agios.yaml", appName),
 		"help": []string{
-			"Run `agios add <app>` to register an app",
+			"Run `agios add <name>` to register an app",
 			"Run `agios status` to check the health of all configured apps",
 		},
 	})

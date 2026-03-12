@@ -23,26 +23,28 @@ type Source interface {
 
 // Task represents a full task with all details.
 type Task struct {
-	ID       string    `json:"id"`
-	Title    string    `json:"title"`
-	Status   string    `json:"status"`
-	Assignee string    `json:"assignee,omitempty"`
-	Body     string    `json:"body,omitempty"`
-	Source   string    `json:"source"`
-	URL      string    `json:"url,omitempty"`
-	Created  time.Time `json:"created"`
-	Updated  time.Time `json:"updated"`
-	Comments []Comment `json:"comments,omitempty"`
+	ID        string    `json:"id"`
+	Title     string    `json:"title"`
+	Status    string    `json:"status"`
+	Assignee  string    `json:"assignee,omitempty"`
+	BlockedBy []string  `json:"blocked_by,omitempty"`
+	Body      string    `json:"body,omitempty"`
+	Source    string    `json:"source"`
+	URL       string    `json:"url,omitempty"`
+	Created   time.Time `json:"created"`
+	Updated   time.Time `json:"updated"`
+	Comments  []Comment `json:"comments,omitempty"`
 }
 
 // TaskSummary is a compact representation for list views.
 type TaskSummary struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	Status   string `json:"status"`
-	Assignee string `json:"assignee,omitempty"`
-	Updated  string `json:"updated"`
-	Source   string `json:"source"`
+	ID        string   `json:"id"`
+	Title     string   `json:"title"`
+	Status    string   `json:"status"`
+	Assignee  string   `json:"assignee,omitempty"`
+	BlockedBy []string `json:"blocked_by,omitempty"`
+	Updated   string   `json:"updated"`
+	Source    string   `json:"source"`
 }
 
 // Comment represents a comment on a task.
@@ -60,18 +62,20 @@ type ListOptions struct {
 
 // CreateOptions for creating a new task.
 type CreateOptions struct {
-	Title    string
-	Body     string
-	Status   string
-	Assignee string
+	Title     string
+	Body      string
+	Status    string
+	Assignee  string
+	BlockedBy []string
 }
 
 // UpdateOptions for updating a task. Nil fields are not changed.
 type UpdateOptions struct {
-	Title    *string
-	Body     *string
-	Status   *string
-	Assignee *string
+	Title     *string
+	Body      *string
+	Status    *string
+	Assignee  *string
+	BlockedBy *[]string
 }
 
 // resolveSources returns all available sources based on config or auto-detection.

@@ -14,7 +14,7 @@ func sourceFlag(src, def Source) string {
 	return ""
 }
 
-// doList handles: agios tasks list [--status <s>] [--assignee <a>] [--source <src>]
+// doList handles: agios tasks list [--status open|closed|ready] [--assignee <name>] [--source <name>]
 func doList(args []string) {
 	cfg, projectRoot := loadConfigAndRoot()
 	sources, err := resolveSources(cfg, projectRoot)
@@ -81,7 +81,7 @@ func doList(args []string) {
 	})
 }
 
-// doGet handles: agios tasks get <id> [--source <src>]
+// doGet handles: agios tasks get <id> [--source <name>]
 func doGet(args []string) {
 	cfg, projectRoot := loadConfigAndRoot()
 	sources, err := resolveSources(cfg, projectRoot)
@@ -101,7 +101,7 @@ func doGet(args []string) {
 
 	if len(remaining) < 1 {
 		emitError("Task ID required", "INVALID_ARGS",
-			"Usage: `agios tasks get <id> [--source <src>]`",
+			"Usage: `agios tasks get <id> [--source <name>]`",
 		)
 		os.Exit(1)
 	}
@@ -133,7 +133,7 @@ func doGet(args []string) {
 	})
 }
 
-// doCreate handles: agios tasks create --title <t> --body <b> [--status <s>] [--assignee <a>] [--source <src>]
+// doCreate handles: agios tasks create --title <text> --body <text> [--status open|closed] [--assignee <name>] [--blocked-by <id,...>] [--source <name>]
 func doCreate(args []string) {
 	cfg, projectRoot := loadConfigAndRoot()
 	sources, err := resolveSources(cfg, projectRoot)
@@ -174,12 +174,22 @@ func doCreate(args []string) {
 				i++
 				opts.Assignee = remaining[i]
 			}
+		case "--blocked-by":
+			if i+1 < len(remaining) {
+				i++
+				for _, b := range strings.Split(remaining[i], ",") {
+					b = strings.TrimSpace(b)
+					if b != "" {
+						opts.BlockedBy = append(opts.BlockedBy, b)
+					}
+				}
+			}
 		}
 	}
 
 	if opts.Title == "" || opts.Body == "" {
 		emitError("Title and body are required", "INVALID_ARGS",
-			"Usage: `agios tasks create --title \"...\" --body \"...\" [--status open|closed] [--assignee <name>]`",
+			"Usage: `agios tasks create --title <text> --body <text> [--status open|closed] [--assignee <name>] [--blocked-by <id,...>]`",
 		)
 		os.Exit(1)
 	}
@@ -203,7 +213,7 @@ func doCreate(args []string) {
 	})
 }
 
-// doUpdate handles: agios tasks update <id> [--title <t>] [--status <s>] [--assignee <a>] [--body <b>] [--source <src>]
+// doUpdate handles: agios tasks update <id> [--title <text>] [--status open|closed] [--assignee <name>] [--body <text>] [--blocked-by <id,...>] [--source <name>]
 func doUpdate(args []string) {
 	cfg, projectRoot := loadConfigAndRoot()
 	sources, err := resolveSources(cfg, projectRoot)
@@ -223,7 +233,7 @@ func doUpdate(args []string) {
 
 	if len(remaining) < 1 {
 		emitError("Task ID required", "INVALID_ARGS",
-			"Usage: `agios tasks update <id> [--title \"...\"] [--status open|closed] [--assignee <name>]`",
+			"Usage: `agios tasks update <id> [--title <text>] [--status open|closed] [--assignee <name>] [--blocked-by <id,...>]`",
 		)
 		os.Exit(1)
 	}
@@ -252,12 +262,24 @@ func doUpdate(args []string) {
 				i++
 				opts.Assignee = &remaining[i]
 			}
+		case "--blocked-by":
+			if i+1 < len(remaining) {
+				i++
+				var blocked []string
+				for _, b := range strings.Split(remaining[i], ",") {
+					b = strings.TrimSpace(b)
+					if b != "" {
+						blocked = append(blocked, b)
+					}
+				}
+				opts.BlockedBy = &blocked
+			}
 		}
 	}
 
-	if opts.Title == nil && opts.Body == nil && opts.Status == nil && opts.Assignee == nil {
+	if opts.Title == nil && opts.Body == nil && opts.Status == nil && opts.Assignee == nil && opts.BlockedBy == nil {
 		emitError("No fields to update", "INVALID_ARGS",
-			"Usage: `agios tasks update <id> [--title \"...\"] [--status open|closed] [--assignee <name>] [--body \"...\"]`",
+			"Usage: `agios tasks update <id> [--title <text>] [--status open|closed] [--assignee <name>] [--body <text>] [--blocked-by <id,...>]`",
 		)
 		os.Exit(1)
 	}
@@ -287,7 +309,7 @@ func doUpdate(args []string) {
 	})
 }
 
-// doComment handles: agios tasks comment <id> <text> [--source <src>]
+// doComment handles: agios tasks comment <id> <text> [--source <name>]
 func doComment(args []string) {
 	cfg, projectRoot := loadConfigAndRoot()
 	sources, err := resolveSources(cfg, projectRoot)
@@ -307,7 +329,7 @@ func doComment(args []string) {
 
 	if len(remaining) < 2 {
 		emitError("Task ID and comment text required", "INVALID_ARGS",
-			"Usage: `agios tasks comment <id> \"comment text\" [--source <src>]`",
+			"Usage: `agios tasks comment <id> \"comment text\" [--source <name>]`",
 		)
 		os.Exit(1)
 	}
@@ -316,7 +338,7 @@ func doComment(args []string) {
 	body := strings.TrimSpace(strings.Join(remaining[1:], " "))
 	if body == "" {
 		emitError("Comment text cannot be empty", "INVALID_ARGS",
-			"Usage: `agios tasks comment <id> \"comment text\" [--source <src>]`",
+			"Usage: `agios tasks comment <id> \"comment text\" [--source <name>]`",
 		)
 		os.Exit(1)
 	}

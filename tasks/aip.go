@@ -169,11 +169,11 @@ func respondHelp() {
 		"description": "Built-in task tracking using local markdown files. " +
 			"All commands accept `--source <name>` to target a specific source.",
 		"commands": []map[string]string{
-			{"name": "list", "usage": "agios tasks list [--status <s>] [--assignee <a>] [--source <src>]", "summary": "List tasks from the default (or specified) source."},
-			{"name": "get", "usage": "agios tasks get <id> [--source <src>]", "summary": "Show full task details including body and comments."},
-			{"name": "create", "usage": "agios tasks create --title <t> --body <b> [--status <s>] [--assignee <a>] [--source <src>]", "summary": "Create a new task."},
-			{"name": "update", "usage": "agios tasks update <id> [--title <t>] [--status <s>] [--assignee <a>] [--body <b>] [--source <src>]", "summary": "Update an existing task."},
-			{"name": "comment", "usage": "agios tasks comment <id> <text> [--source <src>]", "summary": "Add a comment to a task."},
+			{"name": "list", "usage": "agios tasks list [--status open|closed|ready] [--assignee <name>] [--source <name>]", "summary": "List tasks. --status ready returns open tasks not blocked by other open tasks."},
+			{"name": "get", "usage": "agios tasks get <id> [--source <name>]", "summary": "Show full task details including body and comments."},
+			{"name": "create", "usage": "agios tasks create --title <text> --body <text> [--status open|closed] [--assignee <name>] [--blocked-by <id,...>] [--source <name>]", "summary": "Create a new task. Defaults to open."},
+			{"name": "update", "usage": "agios tasks update <id> [--title <text>] [--status open|closed] [--assignee <name>] [--body <text>] [--blocked-by <id,...>] [--source <name>]", "summary": "Update an existing task."},
+			{"name": "comment", "usage": "agios tasks comment <id> <text> [--source <name>]", "summary": "Add a comment to a task."},
 			{"name": "status", "usage": "agios tasks status", "summary": "Show tasks status (AIP protocol)."},
 			{"name": "help", "usage": "agios tasks help", "summary": "Show this help message (AIP protocol)."},
 			{"name": "peek", "usage": "agios tasks peek", "summary": "Show a snapshot of task state (AIP protocol)."},
@@ -263,10 +263,10 @@ func respondPeek() {
 
 func taskCommands() []map[string]string {
 	return []map[string]string{
-		{"name": "list", "usage": "agios tasks list [--status <s>] [--assignee <a>]", "summary": "List tasks"},
+		{"name": "list", "usage": "agios tasks list [--status open|closed|ready] [--assignee <name>]", "summary": "List tasks. --status ready returns open tasks not blocked by other open tasks."},
 		{"name": "get", "usage": "agios tasks get <id>", "summary": "Show task details"},
-		{"name": "create", "usage": "agios tasks create --title <t> --body <b>", "summary": "Create task"},
-		{"name": "update", "usage": "agios tasks update <id> [--status <s>]", "summary": "Update task"},
+		{"name": "create", "usage": "agios tasks create --title <text> --body <text> [--blocked-by <id,...>]", "summary": "Create task"},
+		{"name": "update", "usage": "agios tasks update <id> [--status open|closed] [--blocked-by <id,...>]", "summary": "Update task"},
 		{"name": "comment", "usage": "agios tasks comment <id> <text>", "summary": "Add comment"},
 		{"name": "status", "usage": "agios tasks status", "summary": "AIP status"},
 		{"name": "help", "usage": "agios tasks help", "summary": "AIP help"},

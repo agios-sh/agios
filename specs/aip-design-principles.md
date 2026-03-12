@@ -44,7 +44,7 @@ How agents discover what an app can do and how to use it.
     {
       "name": "list",
       "description": "List items",
-      "usage": "my-app list [--status <status>]"
+      "usage": "my-app list [--status open|closed]"
     },
     {
       "name": "get",
@@ -229,6 +229,20 @@ Hints should reflect what the agent would logically want to do _next_ given the 
 **Bad:** Every `get` response suggests `--status closed` regardless of current status.
 
 **Good:** Check the task's status and suggest the opposite action.
+
+#### Usage strings must be self-describing
+
+Usage strings in `help` output should tell the agent exactly what values a flag accepts — not use opaque single-letter placeholders. An agent reading the help output should be able to construct a valid command without guessing.
+
+**Bad:** `my-app list [--status <s>] [--assignee <a>]` — the agent has no idea what `<s>` or `<a>` mean or what values are valid.
+
+**Good:** `my-app list [--status open|closed|ready] [--assignee <name>]` — enumerated values are listed inline, and free-form parameters use descriptive names (`<name>`, `<text>`, `<id>`) that convey the expected type.
+
+Rules:
+
+1. **Enumerate known values** — if a flag accepts a fixed set of values, list them with `|` (e.g., `open|closed|ready`)
+2. **Use descriptive placeholders** — for free-form input, use names that convey meaning: `<text>`, `<name>`, `<id>`, `<url>` — not `<s>`, `<t>`, `<a>`, `<b>`
+3. **Show structure for compound values** — if a flag accepts multiple values, show the format (e.g., `<id,...>` for comma-separated IDs)
 
 #### Error help should guide toward resolution
 

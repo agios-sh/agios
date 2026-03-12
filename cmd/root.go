@@ -23,8 +23,8 @@ func RunHome(version string) {
 	}
 
 	help := []string{
-		"Run `agios <app>` to see an app's current state",
-		"Run `agios <app> help` to see all commands for an app",
+		"Run `agios <name>` to see an app's current state",
+		"Run `agios <name> help` to see all commands for an app",
 	}
 
 	// Check for updates (non-blocking)

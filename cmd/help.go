@@ -17,14 +17,14 @@ type commandInfo struct {
 func builtinCommands() []commandInfo {
 	return []commandInfo{
 		{Name: "init", Summary: "Initialize agios.yaml in the current directory", Usage: "agios init"},
-		{Name: "add", Summary: "Add an app to agios.yaml", Usage: "agios add <app>"},
-		{Name: "remove", Summary: "Remove an app from agios.yaml", Usage: "agios remove <app>"},
+		{Name: "add", Summary: "Add an app to agios.yaml", Usage: "agios add <name>"},
+		{Name: "remove", Summary: "Remove an app from agios.yaml", Usage: "agios remove <name>"},
 		{Name: "status", Summary: "Check health of all configured apps", Usage: "agios status"},
 		{Name: "help", Summary: "Show this help message", Usage: "agios help"},
-		{Name: "jobs", Summary: "List or check background jobs", Usage: "agios jobs [id]"},
+		{Name: "jobs", Summary: "List or check background jobs", Usage: "agios jobs [<id>]"},
 		{Name: "browser", Summary: "Built-in browser for web automation", Usage: "agios browser <command>"},
 		{Name: "terminal", Summary: "Built-in terminal for interactive shell sessions", Usage: "agios terminal <command>"},
-		{Name: "tasks", Summary: "Built-in task tracking across local files and GitHub Issues", Usage: "agios tasks <command>"},
+		{Name: "tasks", Summary: "Built-in task tracking using local files", Usage: "agios tasks <command>"},
 		{Name: "update", Summary: "Check for and install agios updates", Usage: "agios update [check]"},
 	}
 }
@@ -37,8 +37,8 @@ func RunHelp() {
 		"commands": builtinCommands(),
 		"help": []string{
 			"Run `agios init` to create a new agios.yaml config",
-			"Run `agios add <app>` to register an app",
-			"Run `agios <app> <command>` to interact with a registered app",
+			"Run `agios add <name>` to register an app",
+			"Run `agios <name> <command>` to interact with a registered app",
 		},
 	}
 
