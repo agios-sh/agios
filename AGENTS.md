@@ -22,7 +22,7 @@ Integration tests (`integration_test.go`) compile both `agios` and `testdata/moc
 
 ## Architecture
 
-**Go CLI with no framework** — command dispatch is a switch on `os.Args` in `main.go`. Reserved commands (`init`, `add`, `remove`, `status`, `help`, `jobs`) route to `cmd/` handlers; everything else is treated as an app name and routed through `cmd.RunApp()`.
+**Go CLI with no framework** — command dispatch is a switch on `os.Args` in `main.go`. Reserved commands (`init`, `add`, `remove`, `status`, `help`, `jobs`, `update`) route to `cmd/` handlers; everything else is treated as an app name and routed through `cmd.RunApp()`.
 
 ### Package Responsibilities
 
@@ -31,6 +31,7 @@ Integration tests (`integration_test.go`) compile both `agios` and `testdata/moc
 - **`runner/`** — Subprocess execution with 5s timeout, JSONL protocol parsing (progress lines + final result), background job management (`~/.agios/jobs/`), and binary path resolution.
 - **`output/`** — Pipeline: normalize → truncate strings >4096 chars to temp files (`~/.agios/tmp/`) → convert to TOON or JSON format.
 - **`peek/`** — Concurrent fetch of free-form state snapshots from all configured apps via errgroup.
+- **`updater/`** — Self-update mechanism: checks GitHub releases for newer versions, downloads archives with SHA-256 checksum verification, and atomically replaces the binary. Caches check results in `~/.agios/update-check.json` (24h TTL) and supports background update checks.
 
 ### Key Protocols
 

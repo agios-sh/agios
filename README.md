@@ -107,6 +107,8 @@ agios init                      # Create agios.yaml in current directory
 agios add <app>                 # Add an app
 agios remove <app>              # Remove an app
 agios status                    # Health check all apps
+agios update                    # Check for and install updates
+agios update check              # Check for updates without installing
 agios help                      # Show available commands
 agios jobs                      # List backgrounded jobs
 agios jobs <id>                 # Get job status/result
