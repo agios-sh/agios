@@ -38,14 +38,14 @@ func doClick(sess *Session, handle string) {
 		// Scroll into view
 		_, err = dom.GetContentQuads().WithObjectID(remoteObj.ObjectID).Do(ctx)
 		if err != nil {
-			callFn(ctx, remoteObj.ObjectID, "function() { this.scrollIntoView({block: 'center'}); }")
+			callJSFunction(ctx, remoteObj.ObjectID, "function() { this.scrollIntoView({block: 'center'}); }")
 		}
 
 		// Get coordinates for click
 		x, y, err := getElementCenter(ctx, remoteObj.ObjectID)
 		if err != nil {
 			// Fallback: JS click
-			callFn(ctx, remoteObj.ObjectID, "function() { this.click(); }")
+			callJSFunction(ctx, remoteObj.ObjectID, "function() { this.click(); }")
 			return nil
 		}
 
@@ -90,7 +90,7 @@ func doInput(sess *Session, handle, text string) {
 			return fmt.Errorf("resolving node: %w", err)
 		}
 
-		callFn(ctx, remoteObj.ObjectID, "function() { this.focus(); }")
+		callJSFunction(ctx, remoteObj.ObjectID, "function() { this.focus(); }")
 
 		for _, ch := range text {
 			if err := input.DispatchKeyEvent(input.KeyDown).
@@ -142,7 +142,7 @@ func doSet(sess *Session, handle, value string) {
 			this.dispatchEvent(new Event('input', {bubbles: true}));
 			this.dispatchEvent(new Event('change', {bubbles: true}));
 		}`, escaped)
-		callFn(ctx, remoteObj.ObjectID, js)
+		callJSFunction(ctx, remoteObj.ObjectID, js)
 		return nil
 	}))
 
@@ -287,7 +287,7 @@ func doScroll(sess *Session, scrollTarget string) {
 		if err != nil {
 			return fmt.Errorf("resolving node: %w", err)
 		}
-		callFn(ctx, remoteObj.ObjectID, "function() { this.scrollIntoView({block: 'center', behavior: 'smooth'}); }")
+		callJSFunction(ctx, remoteObj.ObjectID, "function() { this.scrollIntoView({block: 'center', behavior: 'smooth'}); }")
 		return nil
 	}))
 
@@ -336,7 +336,7 @@ func doPick(sess *Session, handle, value string) {
 			}
 			return false;
 		}`, escaped, escaped)
-		callFn(ctx, remoteObj.ObjectID, js)
+		callJSFunction(ctx, remoteObj.ObjectID, js)
 		return nil
 	}))
 
@@ -371,8 +371,8 @@ func getElementCenter(ctx context.Context, objectID runtime.RemoteObjectID) (flo
 	return math.Round(x), math.Round(y), nil
 }
 
-// callFn calls a JavaScript function on a remote object.
-func callFn(ctx context.Context, objectID runtime.RemoteObjectID, fn string) {
+// callJSFunction calls a JavaScript function on a remote object.
+func callJSFunction(ctx context.Context, objectID runtime.RemoteObjectID, fn string) {
 	runtime.CallFunctionOn(fn).
 		WithObjectID(objectID).
 		Do(ctx)

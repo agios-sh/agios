@@ -171,7 +171,11 @@ func (s *PTYSession) SendAndWait(input []byte, timeoutMs int) (screenState, erro
 		return screenState{}, fmt.Errorf("writing to PTY: %w", err)
 	}
 
-	// Wait for output to stabilize
+	// Wait for output to stabilize. Strategy:
+	// 1. Wait for new data or a quiet period (100ms with no writes).
+	// 2. If we got output and it's been quiet, we're done.
+	// 3. If no output yet, check if the process exited.
+	// 4. Give up when the overall deadline expires.
 	deadline := time.After(time.Duration(timeoutMs) * time.Millisecond)
 	quietPeriod := 100 * time.Millisecond
 

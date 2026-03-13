@@ -2,8 +2,9 @@ package browser
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -51,13 +52,12 @@ func doCapture(sess *Session, outPath string) {
 	})
 }
 
-// randomID generates a short random string for file names.
+// randomID generates a short random hex string for file names.
 func randomID() string {
-	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	b := make([]byte, 8)
-	for i := range b {
-		b[i] = chars[r.Intn(len(chars))]
+	if _, err := rand.Read(b); err != nil {
+		// Fallback: use timestamp-based name if crypto/rand fails
+		return fmt.Sprintf("%x", time.Now().UnixNano())
 	}
-	return string(b)
+	return hex.EncodeToString(b)
 }

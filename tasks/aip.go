@@ -100,15 +100,15 @@ func respondOverview() {
 	var help []string
 	if totalOpen > 0 {
 		help = append(help, "Run `agios tasks list` to see all tasks")
-	} else {
-		help = append(help, "Run `agios tasks create --title \"...\" --body \"...\"` to create a task")
-	}
-	if len(allRecent) > 0 {
-		help = append(help, "Run `agios tasks get <id>` to see task details")
-	}
-	if totalOpen > 0 {
+		if len(allRecent) > 0 {
+			help = append(help, "Run `agios tasks get <id>` to see task details")
+		}
 		help = append(help, "Run `agios tasks create --title \"...\" --body \"...\"` to create a task")
 	} else {
+		help = append(help, "Run `agios tasks create --title \"...\" --body \"...\"` to create a task")
+		if len(allRecent) > 0 {
+			help = append(help, "Run `agios tasks get <id>` to see task details")
+		}
 		help = append(help, "Run `agios tasks list --status closed` to see closed tasks")
 	}
 
