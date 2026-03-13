@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/agios-sh/agios/compare/v1.1.0...v1.2.0) (2026-03-13)
+
+
+### Features
+
+* **root:** show correct binary path in output ([#14](https://github.com/agios-sh/agios/issues/14)) ([6703dae](https://github.com/agios-sh/agios/commit/6703dae9f812d0ae22dbd8e0a07e0e3b682c66bd))
+* **tasks:** simplify peek to show ready tasks ([#15](https://github.com/agios-sh/agios/issues/15)) ([cc2bfee](https://github.com/agios-sh/agios/commit/cc2bfee977fbda54dcccfc7ec0c2c5c094ce6242))
+
+
+### Bug Fixes
+
+* unify PTY defaults and deduplicate helpers ([#12](https://github.com/agios-sh/agios/issues/12)) ([c688b61](https://github.com/agios-sh/agios/commit/c688b613dcf2eaa1e0981214c23b3958e1e3c9f5))
+
 ## [1.1.0](https://github.com/agios-sh/agios/compare/v1.0.0...v1.1.0) (2026-03-12)
 
 
