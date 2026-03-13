@@ -24,7 +24,14 @@ func RunHome(version string) {
 		{Name: "tasks", Summary: "Built-in task tracking using local files", Peek: tasks.PeekData()},
 	}
 
-	binaryPath, _ := os.Executable()
+	binaryPath, err := os.Executable()
+	if err != nil {
+		binaryPath = os.Args[0]
+	}
+	if resolved, err := filepath.EvalSymlinks(binaryPath); err == nil {
+		binaryPath = resolved
+	}
+
 	inPath := false
 	if pathBin, err := exec.LookPath("agios"); err == nil {
 		if resolved, err := filepath.EvalSymlinks(pathBin); err == nil && resolved == binaryPath {
