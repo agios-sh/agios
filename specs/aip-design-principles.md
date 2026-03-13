@@ -70,15 +70,15 @@ Returns a free-form JSON object representing the app's current state snapshot. R
 
 ```json
 {
-  "open": 5,
-  "closed": 12,
-  "recent": [
+  "ready": [
     {"id": "1", "title": "Fix auth bug", "status": "open"}
   ]
 }
 ```
 
 There is no fixed schema — each app decides what fields best represent its current state. The OS displays this data inline per app in the home command.
+
+Peek data should be **extremely concise** — it appears in the home command alongside every other app, so every token counts. Show only what the agent needs to decide whether to engage with the app right now. Prefer actionable items (e.g., ready tasks) over counters or history. The home command's general help already tells the agent how to open each app, so peek data doesn't need to repeat that.
 
 ---
 
