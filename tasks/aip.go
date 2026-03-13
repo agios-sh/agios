@@ -188,6 +188,12 @@ func respondHelp() {
 	})
 }
 
+type peekTask struct {
+	ID     string `json:"id"`
+	Title  string `json:"title"`
+	Source string `json:"source"`
+}
+
 // PeekData returns a compact snapshot of task state for the home command.
 func PeekData() map[string]any {
 	cfg, projectRoot := loadConfigAndRoot()
@@ -197,9 +203,7 @@ func PeekData() map[string]any {
 	}
 
 	var mu sync.Mutex
-	totalOpen := 0
-	totalClosed := 0
-	var allRecent []TaskSummary
+	var allReady []peekTask
 
 	var wg sync.WaitGroup
 	for _, src := range sources {
@@ -208,22 +212,13 @@ func PeekData() map[string]any {
 		go func() {
 			defer wg.Done()
 
-			counts, err := src.Summary()
+			ready, err := src.List(ListOptions{Status: "ready"})
 			if err == nil {
 				mu.Lock()
-				totalOpen += counts["open"]
-				totalClosed += counts["closed"]
-				mu.Unlock()
-			}
-
-			recent, err := src.RecentActivity(time.Now().Add(-7 * 24 * time.Hour))
-			if err == nil {
-				mu.Lock()
-				for _, t := range recent {
-					allRecent = append(allRecent, TaskSummary{
+				for _, t := range ready {
+					allReady = append(allReady, peekTask{
 						ID:     t.ID,
 						Title:  t.Title,
-						Status: t.Status,
 						Source: t.Source,
 					})
 				}
@@ -233,24 +228,18 @@ func PeekData() map[string]any {
 	}
 	wg.Wait()
 
-	if totalOpen == 0 && totalClosed == 0 {
+	if len(allReady) == 0 {
 		return nil
 	}
 
-	// Cap recent items
-	if len(allRecent) > 5 {
-		allRecent = allRecent[:5]
+	// Cap ready items
+	if len(allReady) > 5 {
+		allReady = allReady[:5]
 	}
 
-	result := map[string]any{
-		"open":   totalOpen,
-		"closed": totalClosed,
+	return map[string]any{
+		"ready": allReady,
 	}
-	if len(allRecent) > 0 {
-		result["recent"] = allRecent
-	}
-
-	return result
 }
 
 // respondPeek returns a compact snapshot of task state across sources.
