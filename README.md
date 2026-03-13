@@ -169,10 +169,10 @@ my-app peek
 ```
 
 ```json
-{ "open": 5, "in_progress": 2 }
+{ "ready": [{"id": "1", "title": "Fix auth bug"}] }
 ```
 
-Return whatever fields best represent current state. Return `{}` if nothing to report.
+Return whatever fields best represent current state — keep it extremely concise and prefer actionable items over counters. Return `{}` if nothing to report.
 
 ### Output rules
 

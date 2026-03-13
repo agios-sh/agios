@@ -263,15 +263,13 @@ Peek returns a free-form JSON object. Each app decides what to show:
 
 ```json
 {
-  "open": 5,
-  "closed": 12,
-  "recent": [
-    {"id": "1", "title": "Fix auth bug", "status": "open"}
+  "ready": [
+    {"id": "1", "title": "Fix auth bug"}
   ]
 }
 ```
 
-There is no fixed schema — apps choose whatever fields best represent their current state.
+There is no fixed schema — apps choose whatever fields best represent their current state. Peek data should be extremely concise and prefer actionable items (e.g., ready tasks) over counters or history.
 
 ## 5.3 The Home Command
 
@@ -290,10 +288,7 @@ The OS calls `<app> peek` and `<app> status` for each active app in parallel, an
       "name": "gh",
       "summary": "GitHub CLI — issues, PRs, and repos",
       "peek": {
-        "open_prs": 3,
-        "pending_reviews": 1,
-        "recent": [
-          {"title": "PR #456 approved by alex"},
+        "ready": [
           {"title": "Review requested on PR #789"}
         ]
       }
@@ -302,8 +297,9 @@ The OS calls `<app> peek` and `<app> status` for each active app in parallel, an
       "name": "linear",
       "summary": "Linear — issue tracking and project management",
       "peek": {
-        "assigned": 5,
-        "in_progress": 2
+        "ready": [
+          {"id": "LIN-42", "title": "Fix auth bug"}
+        ]
       }
     },
     {
