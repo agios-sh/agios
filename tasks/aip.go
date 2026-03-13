@@ -239,6 +239,7 @@ func PeekData() map[string]any {
 
 	return map[string]any{
 		"ready": allReady,
+		"help":  []string{"Run `agios tasks get <id>` to see task details"},
 	}
 }
 
