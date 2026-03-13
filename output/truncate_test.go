@@ -261,7 +261,7 @@ func TestSpillToFileInDir(t *testing.T) {
 	dir := t.TempDir()
 	content := "test content for spill"
 
-	path, err := spillToFileInDir(content, dir)
+	path, err := spillToDir(content, dir)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
