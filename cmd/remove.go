@@ -11,7 +11,7 @@ import (
 // It removes an app from agios.yaml. Errors if the app is not listed.
 func RunRemove(args []string) {
 	if len(args) == 0 {
-		writeError("Usage: agios remove <name>", "INVALID_ARGS", nil,
+		writeError("Usage: agios remove <name>", "INVALID_ARGS",
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)
@@ -20,7 +20,7 @@ func RunRemove(args []string) {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		writeError("Failed to get working directory", "INTERNAL_ERROR", err,
+		writeError("Failed to get working directory", "INTERNAL_ERROR",
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)
@@ -29,19 +29,19 @@ func RunRemove(args []string) {
 	// Load config
 	cfg, err := config.Load(cwd)
 	if err != nil {
-		writeError("No agios.yaml found. Run `agios init` first.", "NO_CONFIG", err,
+		writeError("No agios.yaml found. Run `agios init` first.", "NO_CONFIG",
 			"Run `agios init` to create a new agios.yaml",
 		)
 		os.Exit(1)
 	}
 
 	if err := removeApp(cfg, appName); err != nil {
-		if re, ok := err.(*removeError); ok {
-			writeError(re.msg, re.code, re.cause,
+		if ce, ok := err.(*cmdError); ok {
+			writeError(ce.msg, ce.code,
 				"Run `agios status` to see configured apps",
 			)
 		} else {
-			writeError(err.Error(), "REMOVE_ERROR", err,
+			writeError(err.Error(), "REMOVE_ERROR",
 				"Run `agios help` for usage information",
 			)
 		}
@@ -57,18 +57,10 @@ func RunRemove(args []string) {
 	})
 }
 
-type removeError struct {
-	msg   string
-	code  string
-	cause error
-}
-
-func (e *removeError) Error() string { return e.msg }
-
 // removeApp removes an app from the config. Returns nil on success.
 func removeApp(cfg *config.Config, appName string) error {
 	if !cfg.HasApp(appName) {
-		return &removeError{
+		return &cmdError{
 			msg:  fmt.Sprintf("App %q is not configured.", appName),
 			code: "NOT_CONFIGURED",
 		}
@@ -83,7 +75,7 @@ func removeApp(cfg *config.Config, appName string) error {
 	cfg.Apps = filtered
 
 	if err := cfg.Save(); err != nil {
-		return &removeError{
+		return &cmdError{
 			msg:   "Failed to save config",
 			code:  "REMOVE_ERROR",
 			cause: err,

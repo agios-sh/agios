@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -224,9 +225,8 @@ func StartChrome(headed bool) (alreadyRunning bool, err error) {
 
 	// Parse port from WebSocket URL
 	port := 0
-	if parts := strings.Split(wsURL, ":"); len(parts) >= 3 {
-		portStr := strings.Split(parts[2], "/")[0]
-		port, _ = strconv.Atoi(portStr)
+	if u, err := url.Parse(wsURL); err == nil {
+		port, _ = strconv.Atoi(u.Port())
 	}
 
 	info := sessionInfo{

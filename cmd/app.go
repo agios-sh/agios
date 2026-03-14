@@ -16,7 +16,7 @@ import (
 func RunApp(appName string, args []string) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		writeError("Failed to get working directory", "INTERNAL_ERROR", err,
+		writeError("Failed to get working directory", "INTERNAL_ERROR",
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)
@@ -25,7 +25,7 @@ func RunApp(appName string, args []string) {
 	// Load config (walks up from cwd)
 	cfg, err := config.Load(cwd)
 	if err != nil {
-		writeError("No agios.yaml found. Run `agios init` first.", "NO_CONFIG", err,
+		writeError("No agios.yaml found. Run `agios init` first.", "NO_CONFIG",
 			"Run `agios init` to create a new agios.yaml",
 		)
 		os.Exit(1)
@@ -34,9 +34,7 @@ func RunApp(appName string, args []string) {
 	// Verify app is in the config
 	if !cfg.HasApp(appName) {
 		writeError(
-			"App \""+appName+"\" is not configured. Run `agios add "+appName+"` first.",
-			"APP_NOT_CONFIGURED",
-			nil,
+			"App \""+appName+"\" is not configured. Run `agios add "+appName+"` first.", "APP_NOT_CONFIGURED",
 			fmt.Sprintf("Run `agios add %s` to register the app", appName),
 		)
 		os.Exit(1)
@@ -46,9 +44,7 @@ func RunApp(appName string, args []string) {
 	binPath, err := runner.Resolve(appName)
 	if err != nil {
 		writeError(
-			"Binary \""+appName+"\" not found on PATH.",
-			"BINARY_NOT_FOUND",
-			err,
+			"Binary \""+appName+"\" not found on PATH.", "BINARY_NOT_FOUND",
 			"Ensure the binary is installed and available on your PATH",
 		)
 		os.Exit(1)
@@ -69,7 +65,7 @@ func RunApp(appName string, args []string) {
 		if stderrStr == "" {
 			stderrStr = execErr.Error()
 		}
-		writeError(stderrStr, "APP_ERROR", execErr,
+		writeError(stderrStr, "APP_ERROR",
 			fmt.Sprintf("Run `agios %s help` to see available commands", appName),
 			"Run `agios status` to check app health",
 		)
@@ -94,7 +90,7 @@ func RunApp(appName string, args []string) {
 				writePipelinedJSON(errResult)
 				os.Exit(1)
 			}
-			writeError("Failed to parse app output", "INVALID_OUTPUT", parseErr,
+			writeError("Failed to parse app output", "INVALID_OUTPUT",
 				"The app's output must be valid JSONL (one JSON object per line).",
 				"Run `agios status` to check app health",
 			)
@@ -108,7 +104,7 @@ func RunApp(appName string, args []string) {
 				os.Exit(1)
 			}
 			// Non-zero exit without error field in output
-			writeError("App exited with error", "APP_ERROR", execErr,
+			writeError("App exited with error", "APP_ERROR",
 				fmt.Sprintf("Run `agios %s help` to see available commands", appName),
 				"Run `agios status` to check app health",
 			)
@@ -122,14 +118,14 @@ func RunApp(appName string, args []string) {
 
 	// No output and no error — shouldn't happen, but handle gracefully
 	if execErr != nil {
-		writeError("App execution failed", "APP_ERROR", execErr,
+		writeError("App execution failed", "APP_ERROR",
 			fmt.Sprintf("Run `agios %s help` to see available commands", appName),
 			"Run `agios status` to check app health",
 		)
 		os.Exit(1)
 	}
 
-	writeError("App produced no output", "INVALID_OUTPUT", nil,
+	writeError("App produced no output", "INVALID_OUTPUT",
 		fmt.Sprintf("Run `agios %s help` to see available commands", appName),
 		"Run `agios status` to check app health",
 	)
@@ -148,7 +144,7 @@ func backgroundJob(appName, binPath string, args []string, result *runner.ExecRe
 	// Create a new job
 	jobID, outputPath, err := runner.StartJob(appName, args)
 	if err != nil {
-		writeError("Failed to create background job", "INTERNAL_ERROR", err,
+		writeError("Failed to create background job", "INTERNAL_ERROR",
 			"Run `agios jobs` to see existing background jobs",
 		)
 		os.Exit(1)
@@ -157,7 +153,7 @@ func backgroundJob(appName, binPath string, args []string, result *runner.ExecRe
 	// Start the subprocess in the background, writing output to the job file
 	_, err = runner.ExecBackground(binPath, args, outputPath)
 	if err != nil {
-		writeError("Failed to background command", "INTERNAL_ERROR", err,
+		writeError("Failed to background command", "INTERNAL_ERROR",
 			"Run `agios jobs` to see existing background jobs",
 		)
 		os.Exit(1)

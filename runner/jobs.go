@@ -23,15 +23,6 @@ type JobMeta struct {
 	Status    string    `json:"status"` // "running" or "completed"
 }
 
-// JobResult represents the response returned when a job is backgrounded.
-type JobResult struct {
-	JobID    string         `json:"job"`
-	App      string         `json:"app"`
-	Status   string         `json:"status"`
-	Progress map[string]any `json:"progress,omitempty"`
-	Help     []string       `json:"help"`
-}
-
 // JobInfo represents a job listing entry.
 type JobInfo struct {
 	ID        string    `json:"id"`

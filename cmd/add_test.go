@@ -22,12 +22,12 @@ func TestAddAppAlreadyConfigured(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for already-configured app")
 	}
-	ae, ok := err.(*addError)
+	ce, ok := err.(*cmdError)
 	if !ok {
-		t.Fatalf("expected *addError, got %T", err)
+		t.Fatalf("expected *cmdError, got %T", err)
 	}
-	if ae.code != "ALREADY_ADDED" {
-		t.Errorf("code = %q, want %q", ae.code, "ALREADY_ADDED")
+	if ce.code != "ALREADY_ADDED" {
+		t.Errorf("code = %q, want %q", ce.code, "ALREADY_ADDED")
 	}
 }
 
@@ -43,12 +43,12 @@ func TestAddAppBinaryNotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for missing binary")
 	}
-	ae, ok := err.(*addError)
+	ce, ok := err.(*cmdError)
 	if !ok {
-		t.Fatalf("expected *addError, got %T", err)
+		t.Fatalf("expected *cmdError, got %T", err)
 	}
-	if ae.code != "BINARY_NOT_FOUND" {
-		t.Errorf("code = %q, want %q", ae.code, "BINARY_NOT_FOUND")
+	if ce.code != "BINARY_NOT_FOUND" {
+		t.Errorf("code = %q, want %q", ce.code, "BINARY_NOT_FOUND")
 	}
 }
 
@@ -154,12 +154,12 @@ func main() {
 	if err == nil {
 		t.Fatal("expected AIP validation error")
 	}
-	ae, ok := err.(*addError)
+	ce, ok := err.(*cmdError)
 	if !ok {
-		t.Fatalf("expected *addError, got %T", err)
+		t.Fatalf("expected *cmdError, got %T", err)
 	}
-	if ae.code != "AIP_VALIDATION_FAILED" {
-		t.Errorf("code = %q, want %q", ae.code, "AIP_VALIDATION_FAILED")
+	if ce.code != "AIP_VALIDATION_FAILED" {
+		t.Errorf("code = %q, want %q", ce.code, "AIP_VALIDATION_FAILED")
 	}
 }
 
@@ -201,12 +201,12 @@ func main() {
 	if err == nil {
 		t.Fatal("expected AIP validation error")
 	}
-	ae, ok := err.(*addError)
+	ce, ok := err.(*cmdError)
 	if !ok {
-		t.Fatalf("expected *addError, got %T", err)
+		t.Fatalf("expected *cmdError, got %T", err)
 	}
-	if ae.code != "AIP_VALIDATION_FAILED" {
-		t.Errorf("code = %q, want %q", ae.code, "AIP_VALIDATION_FAILED")
+	if ce.code != "AIP_VALIDATION_FAILED" {
+		t.Errorf("code = %q, want %q", ce.code, "AIP_VALIDATION_FAILED")
 	}
 }
 

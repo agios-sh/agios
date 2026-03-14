@@ -12,8 +12,20 @@ import (
 // DefaultTimeout is the default subprocess timeout.
 const DefaultTimeout = 5 * time.Second
 
-// passEnvVars are environment variables forwarded from the parent process to app subprocesses.
-var passEnvVars = []string{"AGIOS_FRESH", "AGIOS_VERBOSE", "AGIOS_QUIET"}
+// agiosEnvVars are environment variables forwarded from the parent process to app subprocesses.
+var agiosEnvVars = []string{"AGIOS_FRESH", "AGIOS_VERBOSE", "AGIOS_QUIET"}
+
+// buildEnv returns a copy of the current environment with AGIOS_* variables
+// explicitly included. This ensures forwarding even when the env is rebuilt.
+func buildEnv() []string {
+	env := os.Environ()
+	for _, key := range agiosEnvVars {
+		if val, ok := os.LookupEnv(key); ok {
+			env = append(env, fmt.Sprintf("%s=%s", key, val))
+		}
+	}
+	return env
+}
 
 // ExecResult holds the captured output of a subprocess.
 type ExecResult struct {
@@ -40,13 +52,8 @@ func Exec(binPath string, args []string, timeout time.Duration) (*ExecResult, er
 	cmd.Stderr = &stderr
 	cmd.Stdin = os.Stdin
 
-	// Build env: inherit parent env and ensure AGIOS_* vars are passed through.
-	cmd.Env = os.Environ()
-	for _, key := range passEnvVars {
-		if val, ok := os.LookupEnv(key); ok {
-			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", key, val))
-		}
-	}
+	// Build env: inherit parent env and forward AGIOS_* vars.
+	cmd.Env = buildEnv()
 
 	err := cmd.Run()
 

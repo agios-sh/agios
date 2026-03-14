@@ -18,13 +18,8 @@ func ExecBackground(binPath string, args []string, outputPath string) (*os.Proce
 	cmd.Stderr = outFile // capture stderr too for debugging
 	cmd.Stdin = nil      // no stdin for background jobs
 
-	// Build env: inherit parent env and ensure AGIOS_* vars are passed through
-	cmd.Env = os.Environ()
-	for _, key := range passEnvVars {
-		if val, ok := os.LookupEnv(key); ok {
-			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", key, val))
-		}
-	}
+	// Build env: inherit parent env and forward AGIOS_* vars.
+	cmd.Env = buildEnv()
 
 	// Set platform-specific process attributes for detaching
 	setSysProcAttr(cmd)
