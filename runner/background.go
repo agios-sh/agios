@@ -6,7 +6,6 @@ import (
 	"os/exec"
 )
 
-
 // ExecBackground runs a detached subprocess that survives the parent, for background job execution.
 func ExecBackground(binPath string, args []string, outputPath string) (*os.Process, error) {
 	outFile, err := os.Create(outputPath)
