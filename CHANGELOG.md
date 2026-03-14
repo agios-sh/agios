@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/agios-sh/agios/compare/v1.2.0...v1.3.0) (2026-03-14)
+
+
+### Features
+
+* new docs page ([52d4e31](https://github.com/agios-sh/agios/commit/52d4e316ebcd506e1d6df7f64f0b109febd32e2d))
+
+
+### Bug Fixes
+
+* **tasks:** add peek hint for task details ([#16](https://github.com/agios-sh/agios/issues/16)) ([4f90f89](https://github.com/agios-sh/agios/commit/4f90f8991aa246105d48cd00698fe49caf685229))
+
 ## [1.2.0](https://github.com/agios-sh/agios/compare/v1.1.0...v1.2.0) (2026-03-13)
 
 
