@@ -52,12 +52,12 @@ func TestRemoveAppNotConfigured(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for app not in config")
 	}
-	re, ok := err.(*removeError)
+	ce, ok := err.(*cmdError)
 	if !ok {
-		t.Fatalf("expected *removeError, got %T", err)
+		t.Fatalf("expected *cmdError, got %T", err)
 	}
-	if re.code != "NOT_CONFIGURED" {
-		t.Errorf("code = %q, want %q", re.code, "NOT_CONFIGURED")
+	if ce.code != "NOT_CONFIGURED" {
+		t.Errorf("code = %q, want %q", ce.code, "NOT_CONFIGURED")
 	}
 }
 
@@ -73,12 +73,12 @@ func TestRemoveAppEmptyConfig(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for empty config")
 	}
-	re, ok := err.(*removeError)
+	ce, ok := err.(*cmdError)
 	if !ok {
-		t.Fatalf("expected *removeError, got %T", err)
+		t.Fatalf("expected *cmdError, got %T", err)
 	}
-	if re.code != "NOT_CONFIGURED" {
-		t.Errorf("code = %q, want %q", re.code, "NOT_CONFIGURED")
+	if ce.code != "NOT_CONFIGURED" {
+		t.Errorf("code = %q, want %q", ce.code, "NOT_CONFIGURED")
 	}
 }
 
