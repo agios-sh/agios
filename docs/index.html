@@ -3,61 +3,124 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AGI OS - Install</title>
-    <style>
-      body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
-        max-width: 640px;
-        margin: 80px auto;
-        padding: 0 20px;
-        color: #1a1a1a;
-        background: #fafafa;
-      }
-      h1 {
-        font-size: 1.5rem;
-        margin-bottom: 0.25rem;
-      }
-      p {
-        color: #555;
-        line-height: 1.6;
-      }
-      code {
-        background: #1a1a1a;
-        color: #e0e0e0;
-        padding: 12px 16px;
-        border-radius: 6px;
-        display: block;
-        font-size: 0.9rem;
-        overflow-x: auto;
-        margin: 16px 0;
-      }
-      .label {
-        color: #888;
-        font-size: 0.85rem;
-        margin-bottom: 4px;
-      }
-      a {
-        color: #0066cc;
-      }
-    </style>
+    <title>AGI OS</title>
+    <meta
+      name="description"
+      content="AGI OS is the agent-native operating system."
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
+
   <body>
-    <h1>AGI OS</h1>
-    <p>The agent-native operating system.</p>
+    <main class="page">
+      <header class="site-header">
+        <p class="wordmark">AGI OS</p>
+        <a
+          class="header-link"
+          href="https://github.com/agios-sh/agios"
+          >GitHub</a
+        >
+      </header>
 
-    <div class="label">macOS / Linux</div>
-    <code>curl -fsSL https://agios.sh/install.sh | sh</code>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <h1 id="hero-title">Built for agents, not humans.</h1>
+          <p class="tagline">
+            An ergonomic standard and runtime for building and running apps that
+            agents love.
+          </p>
+        </div>
 
-    <div class="label">Windows (PowerShell)</div>
-    <code>irm https://agios.sh/install.ps1 | iex</code>
+        <section class="terminal" aria-label="Example AGI OS terminal output">
+          <pre><code><span class="prompt">›</span> agios
 
-    <p>
-      After installing, run <strong>agios init</strong> in your project
-      directory to get started.
-    </p>
-    <p>
-      <a href="https://github.com/agios-sh/agios">GitHub</a>
-    </p>
+<span class="toon-key">apps</span><span class="toon-meta">[3]{name,summary}</span>:
+  browser,Built-in browser for web automation
+  terminal,Built-in terminal for interactive shell sessions
+  tasks,Built-in task tracking using local files
+
+<span class="toon-key">help</span><span class="toon-meta">[2]</span>:
+  Run `agios &lt;name&gt;` to see an app's current state
+  Run `agios &lt;name&gt; help` to see all commands for an app</code></pre>
+        </section>
+      </section>
+
+      <hr class="divider" />
+
+      <section class="install" aria-labelledby="install-title">
+        <div class="section-header">
+          <p class="eyebrow">Install</p>
+          <h2 id="install-title">Setup</h2>
+          <p class="section-copy">
+            Install AGI OS, then initialize it in your project.
+          </p>
+        </div>
+
+        <div class="install-grid">
+          <article class="install-item">
+            <h3>macOS / Linux</h3>
+            <div
+              class="command-block"
+              data-copy="curl -fsSL https://agios.sh/install.sh | sh"
+            >
+              <pre><code>curl -fsSL https://agios.sh/install.sh | sh</code></pre>
+              <button
+                type="button"
+                class="copy"
+                aria-label="Copy macOS or Linux install command"
+              >
+                copy
+              </button>
+            </div>
+          </article>
+
+          <article class="install-item">
+            <h3>Windows (PowerShell)</h3>
+            <div
+              class="command-block"
+              data-copy="irm https://agios.sh/install.ps1 | iex"
+            >
+              <pre><code>irm https://agios.sh/install.ps1 | iex</code></pre>
+              <button
+                type="button"
+                class="copy"
+                aria-label="Copy Windows install command"
+              >
+                copy
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <article class="install-item init-block">
+          <h3>Initialize a project</h3>
+          <div class="command-block" data-copy="agios init">
+            <pre><code>agios init</code></pre>
+            <button
+              type="button"
+              class="copy"
+              aria-label="Copy initialization command"
+            >
+              copy
+            </button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
   </body>
 </html>
