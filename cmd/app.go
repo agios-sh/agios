@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agios-sh/agios/config"
 	"github.com/agios-sh/agios/runner"
 )
 
@@ -14,22 +13,7 @@ import (
 // executes it, parses the JSONL output, and writes the result to stdout.
 // If the app exceeds the timeout, it is automatically backgrounded as a job.
 func RunApp(appName string, args []string) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		writeError("Failed to get working directory", "INTERNAL_ERROR",
-			"Run `agios help` for usage information",
-		)
-		os.Exit(1)
-	}
-
-	// Load config (walks up from cwd)
-	cfg, err := config.Load(cwd)
-	if err != nil {
-		writeError("No agios.yaml found. Run `agios init` first.", "NO_CONFIG",
-			"Run `agios init` to create a new agios.yaml",
-		)
-		os.Exit(1)
-	}
+	cfg := loadConfig()
 
 	// Verify app is in the config
 	if !cfg.HasApp(appName) {
@@ -172,14 +156,9 @@ func backgroundJob(appName, binPath string, args []string, result *runner.ExecRe
 	// Include latest progress from the timed-out execution if available
 	if result != nil && len(result.Stdout) > 0 {
 		parsed, parseErr := runner.ParseJSONL(result.Stdout)
-		if parseErr == nil && len(parsed.Progress) > 0 {
-			last := parsed.Progress[len(parsed.Progress)-1]
-			// Extract the inner progress value — ParseJSONL stores the full
-			// line object {"progress": {...}}, but we want just the inner value.
-			if inner, ok := last["progress"]; ok {
-				jobResult["progress"] = inner
-			} else {
-				jobResult["progress"] = last
+		if parseErr == nil {
+			if p := latestProgress(parsed.Progress); p != nil {
+				jobResult["progress"] = p
 			}
 		}
 	}

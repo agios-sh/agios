@@ -247,7 +247,8 @@ func CleanupCompletedJobsAt(baseJobsDir string, now time.Time) error {
 }
 
 // autoDetectCompletion checks if a running job's output file contains a final
-// result line. If so, it marks the job as completed and returns true.
+// result line. If so, it persists the completed status and returns true.
+// The caller is responsible for updating meta.Status in memory.
 func autoDetectCompletion(jobDir string, meta *JobMeta) bool {
 	outputPath := filepath.Join(jobDir, "output.jsonl")
 	data, err := os.ReadFile(outputPath)
@@ -258,9 +259,10 @@ func autoDetectCompletion(jobDir string, meta *JobMeta) bool {
 	if err != nil || parsed.Result == nil {
 		return false
 	}
-	// Output has a final result — mark as completed
-	meta.Status = "completed"
-	_ = writeJobMeta(jobDir, meta) // best-effort persist
+	// Output has a final result — persist completion to disk
+	persistedMeta := *meta
+	persistedMeta.Status = "completed"
+	_ = writeJobMeta(jobDir, &persistedMeta) // best-effort persist
 	return true
 }
 
