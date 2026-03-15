@@ -54,18 +54,25 @@ func writePipelinedJSON(v any) {
 	os.Stdout.Write([]byte("\n"))
 }
 
+// latestProgress extracts the most recent progress value from parsed JSONL
+// progress lines. ParseJSONL stores the full line object {"progress": {...}},
+// so this unwraps the inner value when present. Returns nil if there are no
+// progress lines.
+func latestProgress(progress []map[string]any) any {
+	if len(progress) == 0 {
+		return nil
+	}
+	last := progress[len(progress)-1]
+	if inner, ok := last["progress"]; ok {
+		return inner
+	}
+	return last
+}
+
 // writeError writes an error response to stdout per the AIP output standard
 // (section 4.3). Every error includes a help array so agents always know what
-// to do next.
+// to do next. Delegates to output.EmitError for consistent error formatting
+// across built-in and external app output paths.
 func writeError(msg, code string, help ...string) {
-	result := map[string]any{
-		"error": msg,
-		"code":  code,
-	}
-	if len(help) > 0 {
-		result["help"] = help
-	} else {
-		result["help"] = []string{"Run `agios help` for usage information"}
-	}
-	writePipelinedJSON(result)
+	output.EmitError(msg, code, "Run `agios help` for usage information", help...)
 }

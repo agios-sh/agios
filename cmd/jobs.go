@@ -67,15 +67,8 @@ func getJob(jobID string) {
 
 	if parsed != nil {
 		// Include latest progress if available
-		if len(parsed.Progress) > 0 {
-			last := parsed.Progress[len(parsed.Progress)-1]
-			// Extract the inner progress value — ParseJSONL stores the full
-			// line object {"progress": {...}}, but we want just the inner value.
-			if inner, ok := last["progress"]; ok {
-				result["progress"] = inner
-			} else {
-				result["progress"] = last
-			}
+		if p := latestProgress(parsed.Progress); p != nil {
+			result["progress"] = p
 		}
 		// If job completed, include the final result
 		if meta.Status == "completed" && parsed.Result != nil {
