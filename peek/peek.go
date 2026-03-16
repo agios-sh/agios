@@ -1,4 +1,4 @@
-// Package peek fetches free-form state snapshots from apps.
+// Package peek fetches state snapshots from apps for the dock view.
 package peek
 
 import (
@@ -10,7 +10,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// AppEntry holds a single app for the home command dock view.
 type AppEntry struct {
 	Name    string         `json:"name"`
 	Summary string         `json:"summary,omitempty"`
@@ -18,7 +17,6 @@ type AppEntry struct {
 	Error   string         `json:"error,omitempty"`
 }
 
-// FetchResult holds the result of fetching peek data from one app.
 type FetchResult struct {
 	AppName     string
 	Description string
@@ -26,8 +24,7 @@ type FetchResult struct {
 	Error       string
 }
 
-// FetchAll concurrently fetches peek data from all apps.
-// It runs both `<app> peek` and `<app> status` for each app.
+// FetchAll concurrently fetches peek + status data from all apps.
 func FetchAll(apps []string) []FetchResult {
 	var mu sync.Mutex
 	results := make([]FetchResult, len(apps))
@@ -49,7 +46,6 @@ func FetchAll(apps []string) []FetchResult {
 	return results
 }
 
-// fetchAppPeek runs `<app> peek` and `<app> status` concurrently.
 func fetchAppPeek(appName string) FetchResult {
 	result := FetchResult{AppName: appName}
 
@@ -59,7 +55,6 @@ func fetchAppPeek(appName string) FetchResult {
 		return result
 	}
 
-	// Fetch status for description and peek concurrently
 	var description string
 	var peekData map[string]any
 	var peekErr error
@@ -67,7 +62,6 @@ func fetchAppPeek(appName string) FetchResult {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	// Status goroutine
 	go func() {
 		defer wg.Done()
 		statusResult, statusErr := runner.Exec(binPath, []string{"status"}, runner.DefaultTimeout)
@@ -81,7 +75,6 @@ func fetchAppPeek(appName string) FetchResult {
 		}
 	}()
 
-	// Peek goroutine
 	go func() {
 		defer wg.Done()
 		peekResult, execErr := runner.Exec(binPath, []string{"peek"}, runner.DefaultTimeout)
@@ -111,15 +104,12 @@ func fetchAppPeek(appName string) FetchResult {
 	return result
 }
 
-// parsePeek parses app peek output as a JSON object or JSONL result line.
 func parsePeek(data []byte) (map[string]any, error) {
-	// Try parsing as a JSON object directly
 	var obj map[string]any
 	if err := json.Unmarshal(data, &obj); err == nil {
 		return obj, nil
 	}
 
-	// Try JSONL — use the result line
 	parsed, err := runner.ParseJSONL(data)
 	if err != nil {
 		return nil, fmt.Errorf("invalid peek output: %w", err)

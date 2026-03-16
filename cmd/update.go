@@ -7,9 +7,7 @@ import (
 	"github.com/agios-sh/agios/updater"
 )
 
-// RunUpdate implements the "agios update" command.
-// With no subcommand: check + apply (download and install if newer version exists).
-// With "check" subcommand: check only, update cache, report versions.
+// RunUpdate checks for updates and optionally applies them.
 func RunUpdate(args []string, version string) {
 	if version == "dev" {
 		writePipelinedJSON(map[string]any{
@@ -22,13 +20,10 @@ func RunUpdate(args []string, version string) {
 		return
 	}
 
-	// Subcommand: agios update check
 	if len(args) > 0 && args[0] == "check" {
 		runUpdateCheck(version)
 		return
 	}
-
-	// Default: check + apply
 	runUpdateApply(version)
 }
 

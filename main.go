@@ -48,7 +48,6 @@ func main() {
 	case "update":
 		cmd.RunUpdate(args[1:], version)
 	default:
-		// Treat as app command: agios <app> <command> [args]
 		cmd.RunApp(args[0], args[1:])
 	}
 }

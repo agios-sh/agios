@@ -11,30 +11,24 @@ import (
 
 const FileName = "agios.yaml"
 
-// Config represents the agios.yaml configuration file.
 type Config struct {
 	Apps  []string     `yaml:"apps"`
 	Tasks *TasksConfig `yaml:"tasks,omitempty"`
-
-	// Path is the absolute path to the config file. Not serialized.
-	Path string `yaml:"-"`
+	Path  string       `yaml:"-"` // absolute path to config file
 }
 
-// TasksConfig defines the tasks configuration section in agios.yaml.
 type TasksConfig struct {
 	Default string       `yaml:"default,omitempty"`
 	Sources []TaskSource `yaml:"sources,omitempty"`
 }
 
-// TaskSource defines a single task source (e.g., local files).
 type TaskSource struct {
 	Name string `yaml:"name"`
 	Type string `yaml:"type"`          // "local"
 	Dir  string `yaml:"dir,omitempty"` // path relative to project root
 }
 
-// Load walks up from startDir to find the nearest agios.yaml,
-// similar to how git finds .git/. Returns the parsed config or an error.
+// Load finds and parses the nearest agios.yaml, walking up from startDir.
 func Load(startDir string) (*Config, error) {
 	path, err := Find(startDir)
 	if err != nil {
@@ -54,8 +48,7 @@ func Load(startDir string) (*Config, error) {
 	return &cfg, nil
 }
 
-// Find walks up from startDir to locate the nearest agios.yaml.
-// Returns the absolute path to the config file or an error if not found.
+// Find returns the absolute path to the nearest agios.yaml above startDir.
 func Find(startDir string) (string, error) {
 	dir, err := filepath.Abs(startDir)
 	if err != nil {
@@ -70,14 +63,12 @@ func Find(startDir string) (string, error) {
 
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			// Reached filesystem root without finding config
 			return "", fmt.Errorf("%s not found (walked up from %s)", FileName, startDir)
 		}
 		dir = parent
 	}
 }
 
-// Save writes the config back to its Path.
 func (c *Config) Save() error {
 	if c.Path == "" {
 		return fmt.Errorf("config has no path set")
@@ -94,7 +85,6 @@ func (c *Config) Save() error {
 	return nil
 }
 
-// HasApp checks whether the given app name is in the Apps list.
 func (c *Config) HasApp(name string) bool {
 	for _, a := range c.Apps {
 		if a == name {

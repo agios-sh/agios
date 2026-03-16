@@ -7,11 +7,8 @@ import (
 	"github.com/agios-sh/agios/runner"
 )
 
-// RunJobs implements the "agios jobs" and "agios jobs <id>" commands.
-// With no arguments, it lists all jobs. With a job ID, it returns the
-// job's latest progress or final result.
+// RunJobs lists all jobs or shows a specific job's status.
 func RunJobs(args []string) {
-	// Best-effort cleanup of old completed jobs
 	_ = runner.CleanupCompletedJobs()
 
 	if len(args) == 0 {
@@ -22,7 +19,6 @@ func RunJobs(args []string) {
 	getJob(args[0])
 }
 
-// listJobs lists all active and completed jobs.
 func listJobs() {
 	jobs, err := runner.ListJobs()
 	if err != nil {
@@ -40,7 +36,6 @@ func listJobs() {
 	})
 }
 
-// getJob returns the current progress or final result of a specific job.
 func getJob(jobID string) {
 	meta, parsed, err := runner.GetJobOutput(jobID)
 	if err != nil {
@@ -52,10 +47,8 @@ func getJob(jobID string) {
 		os.Exit(1)
 	}
 
-	// Auto-detect completion: if the output has a final result line
-	// and the job is still marked as "running", mark it as completed.
 	if meta.Status == "running" && parsed != nil && parsed.Result != nil {
-		_ = runner.CompleteJob(jobID) // best-effort
+		_ = runner.CompleteJob(jobID)
 		meta.Status = "completed"
 	}
 
@@ -66,11 +59,9 @@ func getJob(jobID string) {
 	}
 
 	if parsed != nil {
-		// Include latest progress if available
 		if p := latestProgress(parsed.Progress); p != nil {
 			result["progress"] = p
 		}
-		// If job completed, include the final result
 		if meta.Status == "completed" && parsed.Result != nil {
 			result["result"] = parsed.Result
 		}

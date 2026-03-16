@@ -7,18 +7,12 @@ import (
 	"fmt"
 )
 
-// ParsedOutput holds the result of parsing JSONL output from an app subprocess.
 type ParsedOutput struct {
-	// Progress contains all progress update lines (those with a "progress" key).
-	Progress []map[string]any
-	// Result is the final non-progress line (the last line without a "progress" key).
-	Result map[string]any
+	Progress []map[string]any // lines with a "progress" key
+	Result   map[string]any   // last non-progress line
 }
 
-// ParseJSONL parses JSONL output from an app subprocess.
-// Lines containing a "progress" key are collected as progress updates.
-// The last non-progress line is treated as the final result.
-// Returns an error if the output is empty or contains invalid JSON.
+// ParseJSONL parses JSONL output, separating progress lines from the final result.
 func ParseJSONL(data []byte) (*ParsedOutput, error) {
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	output := &ParsedOutput{}
@@ -43,8 +37,7 @@ func ParseJSONL(data []byte) (*ParsedOutput, error) {
 		if _, hasProgress := obj["progress"]; hasProgress {
 			output.Progress = append(output.Progress, obj)
 		} else {
-			// Each non-progress line overwrites the previous; the last one wins.
-			output.Result = obj
+			output.Result = obj // last non-progress line wins
 		}
 	}
 
@@ -69,7 +62,6 @@ func ParseJSONL(data []byte) (*ParsedOutput, error) {
 	return output, nil
 }
 
-// InvalidOutputError indicates the app produced output that doesn't conform to protocol.
 type InvalidOutputError struct {
 	Message string
 	Raw     string

@@ -13,8 +13,7 @@ import (
 	"github.com/agios-sh/agios/updater"
 )
 
-// RunHome implements the home command: `agios` with no arguments.
-// It fetches peek data from all apps and presents a unified dock view.
+// RunHome renders the dock view: peek data from all configured apps.
 func RunHome(version string) {
 	cfg := loadConfig()
 
@@ -55,7 +54,6 @@ func RunHome(version string) {
 		fmt.Sprintf("Run `%s <name> help` to see all commands for an app", binLabel),
 	}
 
-	// Check for updates (non-blocking)
 	if version != "dev" && os.Getenv("AGIOS_NO_UPDATE_CHECK") == "" {
 		cached := updater.ReadCache(version)
 		if updater.IsCacheStale() {
@@ -80,10 +78,7 @@ func RunHome(version string) {
 		return
 	}
 
-	// Fetch peek data from all apps concurrently
 	results := peek.FetchAll(cfg.Apps)
-
-	// Build app entries with inline peek data
 	apps := make([]peek.AppEntry, len(results))
 	for i, r := range results {
 		apps[i] = peek.AppEntry{
@@ -94,7 +89,6 @@ func RunHome(version string) {
 		}
 	}
 
-	// Append built-in apps
 	apps = append(apps, builtins...)
 
 	out := map[string]any{
