@@ -120,5 +120,3 @@ func appendToFile(path, content string) error {
 	}
 	return nil
 }
-
-

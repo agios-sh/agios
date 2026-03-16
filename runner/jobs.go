@@ -185,7 +185,7 @@ func GetJobOutputAt(baseJobsDir string, jobID string) (*JobMeta, *ParsedOutput, 
 
 	parsed, parseErr := ParseJSONL(data)
 	if parseErr != nil {
-			return meta, nil, nil
+		return meta, nil, nil
 	}
 
 	return meta, parsed, nil
