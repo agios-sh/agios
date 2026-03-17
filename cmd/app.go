@@ -14,7 +14,7 @@ func RunApp(appName string, args []string) {
 	cfg := loadConfig()
 
 	if !cfg.HasApp(appName) {
-		writeError(
+		emitError(
 			"App \""+appName+"\" is not configured. Run `agios add "+appName+"` first.", "APP_NOT_CONFIGURED",
 			fmt.Sprintf("Run `agios add %s` to register the app", appName),
 		)
@@ -23,7 +23,7 @@ func RunApp(appName string, args []string) {
 
 	binPath, err := runner.Resolve(appName)
 	if err != nil {
-		writeError(
+		emitError(
 			"Binary \""+appName+"\" not found on PATH.", "BINARY_NOT_FOUND",
 			"Ensure the binary is installed and available on your PATH",
 		)
@@ -42,7 +42,7 @@ func RunApp(appName string, args []string) {
 		if stderrStr == "" {
 			stderrStr = execErr.Error()
 		}
-		writeError(stderrStr, "APP_ERROR",
+		emitError(stderrStr, "APP_ERROR",
 			fmt.Sprintf("Run `agios %s help` to see available commands", appName),
 			"Run `agios status` to check app health",
 		)
@@ -65,7 +65,7 @@ func RunApp(appName string, args []string) {
 				writePipelinedJSON(errResult)
 				os.Exit(1)
 			}
-			writeError("Failed to parse app output", "INVALID_OUTPUT",
+			emitError("Failed to parse app output", "INVALID_OUTPUT",
 				"The app's output must be valid JSONL (one JSON object per line).",
 				"Run `agios status` to check app health",
 			)
@@ -78,7 +78,7 @@ func RunApp(appName string, args []string) {
 				writePipelinedJSON(parsed.Result)
 				os.Exit(1)
 			}
-			writeError("App exited with error", "APP_ERROR",
+			emitError("App exited with error", "APP_ERROR",
 				fmt.Sprintf("Run `agios %s help` to see available commands", appName),
 				"Run `agios status` to check app health",
 			)
@@ -90,14 +90,14 @@ func RunApp(appName string, args []string) {
 	}
 
 	if execErr != nil {
-		writeError("App execution failed", "APP_ERROR",
+		emitError("App execution failed", "APP_ERROR",
 			fmt.Sprintf("Run `agios %s help` to see available commands", appName),
 			"Run `agios status` to check app health",
 		)
 		os.Exit(1)
 	}
 
-	writeError("App produced no output", "INVALID_OUTPUT",
+	emitError("App produced no output", "INVALID_OUTPUT",
 		fmt.Sprintf("Run `agios %s help` to see available commands", appName),
 		"Run `agios status` to check app health",
 	)
@@ -113,7 +113,7 @@ func isTimeoutError(err error) bool {
 func backgroundJob(appName, binPath string, args []string, result *runner.ExecResult) {
 	jobID, outputPath, err := runner.StartJob(appName, args)
 	if err != nil {
-		writeError("Failed to create background job", "INTERNAL_ERROR",
+		emitError("Failed to create background job", "INTERNAL_ERROR",
 			"Run `agios jobs` to see existing background jobs",
 		)
 		os.Exit(1)
@@ -121,7 +121,7 @@ func backgroundJob(appName, binPath string, args []string, result *runner.ExecRe
 
 	_, err = runner.ExecBackground(binPath, args, outputPath)
 	if err != nil {
-		writeError("Failed to background command", "INTERNAL_ERROR",
+		emitError("Failed to background command", "INTERNAL_ERROR",
 			"Run `agios jobs` to see existing background jobs",
 		)
 		os.Exit(1)

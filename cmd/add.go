@@ -12,7 +12,7 @@ import (
 // RunAdd validates an app binary and adds it to agios.yaml.
 func RunAdd(args []string) {
 	if len(args) == 0 {
-		writeError("Usage: agios add <name>", "INVALID_ARGS",
+		emitError("Usage: agios add <name>", "INVALID_ARGS",
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)
@@ -23,11 +23,11 @@ func RunAdd(args []string) {
 
 	if err := addApp(cfg, appName); err != nil {
 		if ce, ok := err.(*cmdError); ok {
-			writeError(ce.msg, ce.code,
+			emitError(ce.msg, ce.code,
 				"Ensure the app binary is installed and on your PATH",
 			)
 		} else {
-			writeError(err.Error(), "ADD_ERROR",
+			emitError(err.Error(), "ADD_ERROR",
 				"Run `agios help` for usage information",
 			)
 		}

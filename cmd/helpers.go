@@ -12,7 +12,7 @@ import (
 func loadConfig() *config.Config {
 	cwd, err := os.Getwd()
 	if err != nil {
-		writeError("Failed to get working directory", "INTERNAL_ERROR",
+		emitError("Failed to get working directory", "INTERNAL_ERROR",
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)
@@ -20,7 +20,7 @@ func loadConfig() *config.Config {
 
 	cfg, err := config.Load(cwd)
 	if err != nil {
-		writeError(
+		emitError(
 			"No agios.yaml found. Run `agios init` first.",
 			"NO_CONFIG",
 			"Run `agios init` to create a new agios.yaml",
@@ -61,6 +61,7 @@ func latestProgress(progress []map[string]any) any {
 	return last
 }
 
-func writeError(msg, code string, help ...string) {
+// emitError writes a structured AIP error to stdout with default help context.
+func emitError(msg, code string, help ...string) {
 	output.EmitError(msg, code, "Run `agios help` for usage information", help...)
 }

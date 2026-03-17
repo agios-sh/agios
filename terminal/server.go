@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"github.com/agios-sh/agios/runner"
 )
 
 // serverInfo stores terminal server connection details persisted to disk.
@@ -371,17 +373,7 @@ func StopServer() error {
 	// Fallback: kill the process
 	proc, err := os.FindProcess(info.PID)
 	if err == nil {
-		proc.Signal(syscall.SIGTERM)
-		done := make(chan struct{})
-		go func() {
-			proc.Wait()
-			close(done)
-		}()
-		select {
-		case <-done:
-		case <-time.After(5 * time.Second):
-			proc.Kill()
-		}
+		runner.GracefulKill(proc, 5*time.Second)
 	}
 
 	cleanServer()

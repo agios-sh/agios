@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"syscall"
+	"time"
 )
 
 // ExecBackground runs a detached subprocess that survives the parent process.
@@ -31,4 +33,20 @@ func ExecBackground(binPath string, args []string, outputPath string) (*os.Proce
 	}()
 
 	return cmd.Process, nil
+}
+
+// GracefulKill sends SIGTERM to a process and waits up to timeout for it to
+// exit. If the process does not exit in time, it is forcefully killed.
+func GracefulKill(proc *os.Process, timeout time.Duration) {
+	proc.Signal(syscall.SIGTERM)
+	done := make(chan struct{})
+	go func() {
+		proc.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(timeout):
+		proc.Kill()
+	}
 }
