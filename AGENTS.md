@@ -42,7 +42,7 @@ Lines with a `"progress"` key are progress updates; the last non-progress line i
 
 ### AIP Design Principles
 
-The `/aip-design-principles` skill auto-loads the full AIP spec when building or modifying AIP apps. It covers the protocol (required subcommands, output format, errors, progress, pagination) and design principles (idempotency, progressive disclosure, input validation, error translation).
+The `/agent-interface-protocol` skill auto-loads the full AIP spec when building or modifying AIP apps. It covers the protocol (required subcommands, output format, errors, progress, pagination) and design principles (idempotency, progressive disclosure, input validation, error translation).
 
 ## Code Style
 
