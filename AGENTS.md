@@ -42,14 +42,7 @@ Lines with a `"progress"` key are progress updates; the last non-progress line i
 
 ### AIP Design Principles
 
-When building or modifying AIP apps (including the built-in browser), follow these principles:
-
-- **No-args = dock view** — `app` with no subcommand shows current state (running? what's open?), not static help. Like what a human would see after clicking an app icon in the mac os dock.
-- **Idempotent operations** — don't error when the desired state already exists. "Start X" when X is running → return success with "using existing X", not an error.
-- **Prefer success over errors** — reserve errors for when intent genuinely can't be satisfied. If the agent's goal can be met (even via existing state), return success with context.
-- **Progressive disclosure** — each response's `help` array suggests a few next logical steps from the current state, not a full command listing. Agents discover the app by using it, not by reading a manual.
-
-See `specs/aip-design-principles.md` for the complete AIP reference (protocol requirements + design principles).
+The `/agent-interface-protocol` skill auto-loads the full AIP spec when building or modifying AIP apps. It covers the protocol (required subcommands, output format, errors, progress, pagination) and design principles (idempotency, progressive disclosure, input validation, error translation).
 
 ## Code Style
 

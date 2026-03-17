@@ -461,7 +461,7 @@ apps: [my-app]
 
 Your app now works with `agios my-app <command>`, appears in `agios status`, and shows its state in the home command.
 
-Beyond these requirements, see [aip-design-principles.md](aip-design-principles.md) for principles on how apps should behave (idempotency, progressive disclosure, etc.).
+Beyond these requirements, see [the AIP skill](../.agents/skills/agent-interface-protocol/SKILL.md) for principles on how apps should behave (idempotency, progressive disclosure, etc.).
 
 ---
 
