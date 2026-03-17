@@ -182,7 +182,7 @@ Return whatever fields best represent current state — keep it extremely concis
 - Warnings: include a `"warnings"` array (operation still succeeds)
 - Stdin for content bodies, stdout for results, stderr for diagnostics
 
-See [specs/aip-design-principles.md](specs/aip-design-principles.md) for the complete protocol reference and design principles.
+See [.agents/skills/agent-interface-protocol/SKILL.md](.agents/skills/agent-interface-protocol/SKILL.md) for the complete protocol reference and design principles.
 
 ## Development
 
