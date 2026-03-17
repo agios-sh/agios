@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/agios-sh/agios/runner"
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
 )
@@ -371,18 +372,7 @@ func StopChrome() error {
 
 	proc, err := os.FindProcess(info.PID)
 	if err == nil {
-		proc.Signal(syscall.SIGTERM)
-		// Give Chrome a moment to shut down gracefully
-		done := make(chan struct{})
-		go func() {
-			proc.Wait()
-			close(done)
-		}()
-		select {
-		case <-done:
-		case <-time.After(5 * time.Second):
-			proc.Kill()
-		}
+		runner.GracefulKill(proc, 5*time.Second)
 	}
 
 	cleanSession()

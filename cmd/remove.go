@@ -10,7 +10,7 @@ import (
 // RunRemove removes an app from agios.yaml.
 func RunRemove(args []string) {
 	if len(args) == 0 {
-		writeError("Usage: agios remove <name>", "INVALID_ARGS",
+		emitError("Usage: agios remove <name>", "INVALID_ARGS",
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)
@@ -21,11 +21,11 @@ func RunRemove(args []string) {
 
 	if err := removeApp(cfg, appName); err != nil {
 		if ce, ok := err.(*cmdError); ok {
-			writeError(ce.msg, ce.code,
+			emitError(ce.msg, ce.code,
 				"Run `agios status` to see configured apps",
 			)
 		} else {
-			writeError(err.Error(), "REMOVE_ERROR",
+			emitError(err.Error(), "REMOVE_ERROR",
 				"Run `agios help` for usage information",
 			)
 		}

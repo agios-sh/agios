@@ -22,7 +22,7 @@ func RunJobs(args []string) {
 func listJobs() {
 	jobs, err := runner.ListJobs()
 	if err != nil {
-		writeError("Failed to list jobs", "INTERNAL_ERROR",
+		emitError("Failed to list jobs", "INTERNAL_ERROR",
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)
@@ -39,7 +39,7 @@ func listJobs() {
 func getJob(jobID string) {
 	meta, parsed, err := runner.GetJobOutput(jobID)
 	if err != nil {
-		writeError(
+		emitError(
 			fmt.Sprintf("Job %q not found", jobID),
 			"JOB_NOT_FOUND",
 			"Run `agios jobs` to list all active and completed jobs",

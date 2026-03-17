@@ -12,16 +12,9 @@ import (
 // DefaultTimeout is the default subprocess timeout.
 const DefaultTimeout = 5 * time.Second
 
-var agiosEnvVars = []string{"AGIOS_FRESH", "AGIOS_VERBOSE", "AGIOS_QUIET"}
-
+// buildEnv returns the current process environment for child subprocesses.
 func buildEnv() []string {
-	env := os.Environ()
-	for _, key := range agiosEnvVars {
-		if val, ok := os.LookupEnv(key); ok {
-			env = append(env, fmt.Sprintf("%s=%s", key, val))
-		}
-	}
-	return env
+	return os.Environ()
 }
 
 type ExecResult struct {

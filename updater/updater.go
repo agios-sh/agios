@@ -481,27 +481,7 @@ func extractTarGz(archivePath string) (string, error) {
 
 		name := filepath.Base(header.Name)
 		if name == binaryName && header.Typeflag == tar.TypeReg {
-			tmp, err := os.CreateTemp("", "agios-new-*")
-			if err != nil {
-				return "", err
-			}
-			n, err := io.Copy(tmp, io.LimitReader(tr, maxBinarySize+1))
-			if err != nil {
-				tmp.Close()
-				os.Remove(tmp.Name())
-				return "", err
-			}
-			if n > maxBinarySize {
-				tmp.Close()
-				os.Remove(tmp.Name())
-				return "", fmt.Errorf("binary exceeds maximum size of %d bytes", maxBinarySize)
-			}
-			tmp.Close()
-			if err := os.Chmod(tmp.Name(), 0o755); err != nil {
-				os.Remove(tmp.Name())
-				return "", err
-			}
-			return tmp.Name(), nil
+			return writeBinaryToTemp(tr, "agios-new-*")
 		}
 	}
 
@@ -526,31 +506,37 @@ func extractZip(archivePath string) (string, error) {
 			}
 			defer rc.Close()
 
-			tmp, err := os.CreateTemp("", "agios-new-*.exe")
-			if err != nil {
-				return "", err
-			}
-			n, err := io.Copy(tmp, io.LimitReader(rc, maxBinarySize+1))
-			if err != nil {
-				tmp.Close()
-				os.Remove(tmp.Name())
-				return "", err
-			}
-			if n > maxBinarySize {
-				tmp.Close()
-				os.Remove(tmp.Name())
-				return "", fmt.Errorf("binary exceeds maximum size of %d bytes", maxBinarySize)
-			}
-			tmp.Close()
-			if err := os.Chmod(tmp.Name(), 0o755); err != nil {
-				os.Remove(tmp.Name())
-				return "", err
-			}
-			return tmp.Name(), nil
+			return writeBinaryToTemp(rc, "agios-new-*.exe")
 		}
 	}
 
 	return "", fmt.Errorf("binary %q not found in archive", binaryName)
+}
+
+// writeBinaryToTemp reads from r into a new temp file, enforcing maxBinarySize
+// and setting executable permissions. Returns the temp file path.
+func writeBinaryToTemp(r io.Reader, pattern string) (string, error) {
+	tmp, err := os.CreateTemp("", pattern)
+	if err != nil {
+		return "", err
+	}
+	n, err := io.Copy(tmp, io.LimitReader(r, maxBinarySize+1))
+	if err != nil {
+		tmp.Close()
+		os.Remove(tmp.Name())
+		return "", err
+	}
+	if n > maxBinarySize {
+		tmp.Close()
+		os.Remove(tmp.Name())
+		return "", fmt.Errorf("binary exceeds maximum size of %d bytes", maxBinarySize)
+	}
+	tmp.Close()
+	if err := os.Chmod(tmp.Name(), 0o755); err != nil {
+		os.Remove(tmp.Name())
+		return "", err
+	}
+	return tmp.Name(), nil
 }
 
 func atomicReplace(target, newBinary string) error {

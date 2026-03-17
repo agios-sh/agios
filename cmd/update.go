@@ -30,7 +30,7 @@ func RunUpdate(args []string, version string) {
 func runUpdateCheck(version string) {
 	result, err := updater.CheckLatest(version)
 	if err != nil {
-		writeError("Failed to check for updates", "UPDATE_CHECK_FAILED",
+		emitError("Failed to check for updates", "UPDATE_CHECK_FAILED",
 			"Check your internet connection and try again",
 			"GitHub API: https://api.github.com/repos/agios-sh/agios/releases/latest",
 		)
@@ -62,7 +62,7 @@ func runUpdateCheck(version string) {
 func runUpdateApply(version string) {
 	result, err := updater.CheckLatest(version)
 	if err != nil {
-		writeError("Failed to check for updates", "UPDATE_CHECK_FAILED",
+		emitError("Failed to check for updates", "UPDATE_CHECK_FAILED",
 			"Check your internet connection and try again",
 		)
 		os.Exit(1)
@@ -81,7 +81,7 @@ func runUpdateApply(version string) {
 	}
 
 	if err := updater.Apply(result); err != nil {
-		writeError(
+		emitError(
 			fmt.Sprintf("Failed to install update: %v", err),
 			"UPDATE_FAILED",
 			"Try downloading manually from https://github.com/agios-sh/agios/releases/latest",

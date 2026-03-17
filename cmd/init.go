@@ -23,7 +23,7 @@ This project uses AGI OS (agios) for agent-friendly access to external tools.
 func RunInit() {
 	cwd, err := os.Getwd()
 	if err != nil {
-		writeError("Failed to get working directory", "INIT_ERROR",
+		emitError("Failed to get working directory", "INIT_ERROR",
 			"Run `agios help` for usage information",
 		)
 		os.Exit(1)
@@ -32,7 +32,7 @@ func RunInit() {
 	configPath := filepath.Join(cwd, config.FileName)
 
 	if _, err := os.Stat(configPath); err == nil {
-		writeError(
+		emitError(
 			fmt.Sprintf("%s already exists in this directory", config.FileName),
 			"ALREADY_INITIALIZED",
 			"Run `agios add <app>` to register an app",
@@ -45,14 +45,14 @@ func RunInit() {
 		Path: configPath,
 	}
 	if err := cfg.Save(); err != nil {
-		writeError("Failed to create config file", "INIT_ERROR",
+		emitError("Failed to create config file", "INIT_ERROR",
 			"Check file permissions in the current directory",
 		)
 		os.Exit(1)
 	}
 
 	if err := setupAgentMemoryFile(cwd); err != nil {
-		writeError("Failed to set up agent memory file", "INIT_ERROR",
+		emitError("Failed to set up agent memory file", "INIT_ERROR",
 			"Check file permissions in the current directory",
 		)
 		os.Exit(1)
