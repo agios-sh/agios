@@ -7,8 +7,7 @@ import (
 	"github.com/agios-sh/agios/config"
 )
 
-// RunRemove implements the "agios remove <app>" command.
-// It removes an app from agios.yaml. Errors if the app is not listed.
+// RunRemove removes an app from agios.yaml.
 func RunRemove(args []string) {
 	if len(args) == 0 {
 		writeError("Usage: agios remove <name>", "INVALID_ARGS",
@@ -18,22 +17,7 @@ func RunRemove(args []string) {
 	}
 	appName := args[0]
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		writeError("Failed to get working directory", "INTERNAL_ERROR",
-			"Run `agios help` for usage information",
-		)
-		os.Exit(1)
-	}
-
-	// Load config
-	cfg, err := config.Load(cwd)
-	if err != nil {
-		writeError("No agios.yaml found. Run `agios init` first.", "NO_CONFIG",
-			"Run `agios init` to create a new agios.yaml",
-		)
-		os.Exit(1)
-	}
+	cfg := loadConfig()
 
 	if err := removeApp(cfg, appName); err != nil {
 		if ce, ok := err.(*cmdError); ok {
@@ -57,7 +41,6 @@ func RunRemove(args []string) {
 	})
 }
 
-// removeApp removes an app from the config. Returns nil on success.
 func removeApp(cfg *config.Config, appName string) error {
 	if !cfg.HasApp(appName) {
 		return &cmdError{

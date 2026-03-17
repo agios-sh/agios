@@ -10,14 +10,9 @@ import (
 )
 
 const (
-	// MaxStringLength is the threshold above which string values are spilled to temp files.
 	MaxStringLength = 4096
-
-	// TempDir is the directory under ~/.agios/ where spilled values are stored.
-	TempDir = "tmp"
-
-	// TempFileTTL is the time-to-live for temp files before cleanup.
-	TempFileTTL = 1 * time.Hour
+	TempDir         = "tmp"
+	TempFileTTL     = 1 * time.Hour
 )
 
 func agiosDir() (string, error) {
@@ -40,10 +35,8 @@ func tempDir() (string, error) {
 	return dir, nil
 }
 
-// spillFunc writes a large string value to a file and returns the file path.
 type spillFunc func(value string) (string, error)
 
-// defaultSpill writes the value to the default temp directory (~/.agios/tmp/).
 func defaultSpill(value string) (string, error) {
 	dir, err := tempDir()
 	if err != nil {
@@ -52,7 +45,6 @@ func defaultSpill(value string) (string, error) {
 	return spillToDir(value, dir)
 }
 
-// spillToDir writes the value to a file in the given directory.
 func spillToDir(value string, dir string) (string, error) {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", fmt.Errorf("creating temp directory: %w", err)
@@ -72,15 +64,12 @@ func spillToDir(value string, dir string) (string, error) {
 	return path, nil
 }
 
-// Truncate walks a JSON value and replaces any string value exceeding
-// MaxStringLength with a file path reference. The full value is written
-// to ~/.agios/tmp/.
+// Truncate replaces string values exceeding MaxStringLength with file references.
 func Truncate(v any) (any, error) {
 	return truncateWalk(v, defaultSpill)
 }
 
-// TruncateWithDir is like Truncate but uses a custom directory for temp files.
-// This is useful for testing.
+// TruncateWithDir is like Truncate but uses a custom directory (for testing).
 func TruncateWithDir(v any, dir string) (any, error) {
 	spill := func(value string) (string, error) {
 		return spillToDir(value, dir)
@@ -126,7 +115,6 @@ func truncateWalk(v any, spill spillFunc) (any, error) {
 	}
 }
 
-// CleanupTempFiles removes temp files older than TempFileTTL.
 func CleanupTempFiles() error {
 	dir, err := tempDir()
 	if err != nil {

@@ -20,7 +20,6 @@ This project uses AGI OS (agios) for agent-friendly access to external tools.
 - Always prefer ` + "`agios`" + ` over direct tool CLIs when available
 `
 
-// RunInit implements the "agios init" command.
 func RunInit() {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -32,7 +31,6 @@ func RunInit() {
 
 	configPath := filepath.Join(cwd, config.FileName)
 
-	// Error if agios.yaml already exists in the current directory
 	if _, err := os.Stat(configPath); err == nil {
 		writeError(
 			fmt.Sprintf("%s already exists in this directory", config.FileName),
@@ -42,7 +40,6 @@ func RunInit() {
 		os.Exit(1)
 	}
 
-	// Create agios.yaml with empty apps list
 	cfg := &config.Config{
 		Apps: []string{},
 		Path: configPath,
@@ -54,7 +51,6 @@ func RunInit() {
 		os.Exit(1)
 	}
 
-	// Handle agent memory file
 	if err := setupAgentMemoryFile(cwd); err != nil {
 		writeError("Failed to set up agent memory file", "INIT_ERROR",
 			"Check file permissions in the current directory",
@@ -71,8 +67,8 @@ func RunInit() {
 	})
 }
 
-// setupAgentMemoryFile detects CLAUDE.md / AGENTS.md and appends AGI OS instructions.
-// If neither exists, creates AGENTS.md and symlinks CLAUDE.md to it.
+// setupAgentMemoryFile appends AGI OS instructions to CLAUDE.md or AGENTS.md,
+// creating AGENTS.md + a CLAUDE.md symlink if neither exists.
 func setupAgentMemoryFile(dir string) error {
 	claudePath := filepath.Join(dir, "CLAUDE.md")
 	agentsPath := filepath.Join(dir, "AGENTS.md")
@@ -82,17 +78,13 @@ func setupAgentMemoryFile(dir string) error {
 
 	switch {
 	case claudeExists:
-		// Append to existing CLAUDE.md
 		return appendToFile(claudePath, agentMemoryContent)
 	case agentsExists:
-		// Append to existing AGENTS.md
 		if err := appendToFile(agentsPath, agentMemoryContent); err != nil {
 			return err
 		}
-		// Create CLAUDE.md symlink so agents discover agios
 		return os.Symlink("AGENTS.md", claudePath)
 	default:
-		// Create AGENTS.md and symlink CLAUDE.md to it
 		if err := os.WriteFile(agentsPath, []byte(agentMemoryContent), 0644); err != nil {
 			return fmt.Errorf("creating AGENTS.md: %w", err)
 		}
@@ -109,13 +101,12 @@ func fileExists(path string) bool {
 }
 
 func appendToFile(path, content string) error {
-	// Check if content already exists to avoid duplicate appends.
 	existing, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("reading %s: %w", path, err)
 	}
 	if strings.Contains(string(existing), strings.TrimSpace(content)) {
-		return nil // already present
+		return nil
 	}
 
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
@@ -129,6 +120,3 @@ func appendToFile(path, content string) error {
 	}
 	return nil
 }
-
-// Shared helpers (loadConfig, writeJSON, writePipelinedJSON, writeError)
-// live in cmd/helpers.go.

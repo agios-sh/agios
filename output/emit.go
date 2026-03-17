@@ -6,7 +6,6 @@ import (
 )
 
 // EmitResult writes a JSON value through the output pipeline to stdout.
-// Falls back to plain JSON encoding if the pipeline fails.
 func EmitResult(v map[string]any) {
 	data, err := Process(v)
 	if err != nil {
@@ -18,8 +17,7 @@ func EmitResult(v map[string]any) {
 	os.Stdout.Write([]byte("\n"))
 }
 
-// EmitError writes an AIP-compliant error response to stdout.
-// If no help strings are provided, defaultHelp is used as the fallback.
+// EmitError writes an AIP error to stdout. Uses defaultHelp if no help strings given.
 func EmitError(msg, code, defaultHelp string, help ...string) {
 	result := map[string]any{
 		"error": msg,

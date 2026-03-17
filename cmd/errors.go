@@ -1,7 +1,5 @@
 package cmd
 
-// cmdError is a structured error used by command implementations to carry
-// both a user-facing message and an AIP error code.
 type cmdError struct {
 	msg   string
 	code  string

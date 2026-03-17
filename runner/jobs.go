@@ -11,10 +11,8 @@ import (
 	"time"
 )
 
-// JobCleanupTTL is the duration after which completed jobs are cleaned up.
 const JobCleanupTTL = 24 * time.Hour
 
-// JobMeta holds metadata about a backgrounded job.
 type JobMeta struct {
 	ID        string    `json:"id"`
 	App       string    `json:"app"`
@@ -23,7 +21,6 @@ type JobMeta struct {
 	Status    string    `json:"status"` // "running" or "completed"
 }
 
-// JobInfo represents a job listing entry.
 type JobInfo struct {
 	ID        string    `json:"id"`
 	App       string    `json:"app"`
@@ -32,7 +29,6 @@ type JobInfo struct {
 	Status    string    `json:"status"`
 }
 
-// jobsDir returns the path to ~/.agios/jobs/.
 func jobsDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -41,20 +37,17 @@ func jobsDir() (string, error) {
 	return filepath.Join(home, ".agios", "jobs"), nil
 }
 
-// jobsDirAt returns the path to the jobs directory under a custom base dir.
 func jobsDirAt(baseDir string) string {
 	return filepath.Join(baseDir, "jobs")
 }
 
-// generateJobID creates a new job ID in the format j_<random hex>.
 func generateJobID() string {
 	b := make([]byte, 8)
 	_, _ = rand.Read(b)
 	return "j_" + hex.EncodeToString(b)
 }
 
-// StartJob creates a new job directory and writes the initial metadata.
-// It returns the job ID and the path to the output file.
+// StartJob creates a new job and returns the job ID and output file path.
 func StartJob(app string, command []string) (string, string, error) {
 	dir, err := jobsDir()
 	if err != nil {
@@ -63,7 +56,7 @@ func StartJob(app string, command []string) (string, string, error) {
 	return StartJobAt(dir, app, command)
 }
 
-// StartJobAt creates a new job under a custom jobs directory.
+// StartJobAt is like StartJob but uses a custom jobs directory (for testing).
 func StartJobAt(baseJobsDir string, app string, command []string) (string, string, error) {
 	id := generateJobID()
 	jobDir := filepath.Join(baseJobsDir, id)
@@ -88,7 +81,6 @@ func StartJobAt(baseJobsDir string, app string, command []string) (string, strin
 	return id, outputPath, nil
 }
 
-// CompleteJob marks a job as completed by updating its metadata.
 func CompleteJob(jobID string) error {
 	dir, err := jobsDir()
 	if err != nil {
@@ -97,7 +89,6 @@ func CompleteJob(jobID string) error {
 	return CompleteJobAt(dir, jobID)
 }
 
-// CompleteJobAt marks a job as completed under a custom jobs directory.
 func CompleteJobAt(baseJobsDir string, jobID string) error {
 	jobDir := filepath.Join(baseJobsDir, jobID)
 	meta, err := readJobMeta(jobDir)
@@ -108,7 +99,6 @@ func CompleteJobAt(baseJobsDir string, jobID string) error {
 	return writeJobMeta(jobDir, meta)
 }
 
-// ListJobs returns all jobs (active and completed).
 func ListJobs() ([]JobInfo, error) {
 	dir, err := jobsDir()
 	if err != nil {
@@ -117,8 +107,7 @@ func ListJobs() ([]JobInfo, error) {
 	return ListJobsAt(dir)
 }
 
-// ListJobsAt returns all jobs under a custom jobs directory.
-// It auto-detects completed jobs by checking if their output contains a final result.
+// ListJobsAt returns all jobs, auto-detecting completion from output files.
 func ListJobsAt(baseJobsDir string) ([]JobInfo, error) {
 	entries, err := os.ReadDir(baseJobsDir)
 	if err != nil {
@@ -139,7 +128,6 @@ func ListJobsAt(baseJobsDir string) ([]JobInfo, error) {
 			continue // skip corrupted jobs
 		}
 
-		// Auto-detect completion for running jobs
 		if meta.Status == "running" {
 			if autoDetectCompletion(jobDir, meta) {
 				meta.Status = "completed"
@@ -155,7 +143,6 @@ func ListJobsAt(baseJobsDir string) ([]JobInfo, error) {
 		})
 	}
 
-	// Sort by start time, most recent first
 	sort.Slice(jobs, func(i, j int) bool {
 		return jobs[i].StartTime.After(jobs[j].StartTime)
 	})
@@ -167,8 +154,6 @@ func ListJobsAt(baseJobsDir string) ([]JobInfo, error) {
 	return jobs, nil
 }
 
-// GetJobOutput reads the output file of a job. It returns the latest progress
-// (if any) and the final result (if completed).
 func GetJobOutput(jobID string) (*JobMeta, *ParsedOutput, error) {
 	dir, err := jobsDir()
 	if err != nil {
@@ -177,7 +162,6 @@ func GetJobOutput(jobID string) (*JobMeta, *ParsedOutput, error) {
 	return GetJobOutputAt(dir, jobID)
 }
 
-// GetJobOutputAt reads the output of a job under a custom jobs directory.
 func GetJobOutputAt(baseJobsDir string, jobID string) (*JobMeta, *ParsedOutput, error) {
 	jobDir := filepath.Join(baseJobsDir, jobID)
 
@@ -190,7 +174,6 @@ func GetJobOutputAt(baseJobsDir string, jobID string) (*JobMeta, *ParsedOutput, 
 	data, err := os.ReadFile(outputPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// Job exists but no output yet
 			return meta, nil, nil
 		}
 		return nil, nil, fmt.Errorf("reading job output: %w", err)
@@ -202,14 +185,12 @@ func GetJobOutputAt(baseJobsDir string, jobID string) (*JobMeta, *ParsedOutput, 
 
 	parsed, parseErr := ParseJSONL(data)
 	if parseErr != nil {
-		// Return raw data as best effort
 		return meta, nil, nil
 	}
 
 	return meta, parsed, nil
 }
 
-// CleanupCompletedJobs removes completed jobs older than the cleanup TTL.
 func CleanupCompletedJobs() error {
 	dir, err := jobsDir()
 	if err != nil {
@@ -218,8 +199,6 @@ func CleanupCompletedJobs() error {
 	return CleanupCompletedJobsAt(dir, time.Now())
 }
 
-// CleanupCompletedJobsAt removes completed jobs older than the cleanup TTL
-// under a custom jobs directory.
 func CleanupCompletedJobsAt(baseJobsDir string, now time.Time) error {
 	entries, err := os.ReadDir(baseJobsDir)
 	if err != nil {
@@ -246,9 +225,8 @@ func CleanupCompletedJobsAt(baseJobsDir string, now time.Time) error {
 	return nil
 }
 
-// autoDetectCompletion checks if a running job's output file contains a final
-// result line. If so, it persists the completed status and returns true.
-// The caller is responsible for updating meta.Status in memory.
+// autoDetectCompletion checks if a running job's output contains a final result,
+// persists the completed status if so, and returns true.
 func autoDetectCompletion(jobDir string, meta *JobMeta) bool {
 	outputPath := filepath.Join(jobDir, "output.jsonl")
 	data, err := os.ReadFile(outputPath)
@@ -259,14 +237,12 @@ func autoDetectCompletion(jobDir string, meta *JobMeta) bool {
 	if err != nil || parsed.Result == nil {
 		return false
 	}
-	// Output has a final result — persist completion to disk
 	persistedMeta := *meta
 	persistedMeta.Status = "completed"
 	_ = writeJobMeta(jobDir, &persistedMeta) // best-effort persist
 	return true
 }
 
-// writeJobMeta writes the job metadata to meta.json in the job directory.
 func writeJobMeta(jobDir string, meta *JobMeta) error {
 	data, err := json.MarshalIndent(meta, "", "  ")
 	if err != nil {
@@ -279,7 +255,6 @@ func writeJobMeta(jobDir string, meta *JobMeta) error {
 	return nil
 }
 
-// readJobMeta reads the job metadata from meta.json in the job directory.
 func readJobMeta(jobDir string) (*JobMeta, error) {
 	metaPath := filepath.Join(jobDir, "meta.json")
 	data, err := os.ReadFile(metaPath)

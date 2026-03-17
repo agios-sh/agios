@@ -14,7 +14,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// appStatus holds the status result for a single app.
 type appStatus struct {
 	Name    string `json:"name"`
 	Status  string `json:"status"`
@@ -23,8 +22,7 @@ type appStatus struct {
 	Error   string `json:"error,omitempty"`
 }
 
-// RunStatus implements the "agios status" command.
-// It concurrently runs "<binary> status" for each app in config using errgroup.
+// RunStatus concurrently queries status for all configured apps and built-ins.
 func RunStatus() {
 	cfg := loadConfig()
 
@@ -52,8 +50,6 @@ func RunStatus() {
 	})
 }
 
-// collectAppStatuses concurrently runs "<app> status" for each app and returns results.
-// Missing or broken apps produce errors rather than blocking other apps.
 func collectAppStatuses(apps []string) []appStatus {
 	var mu sync.Mutex
 	results := make([]appStatus, len(apps))
@@ -75,8 +71,6 @@ func collectAppStatuses(apps []string) []appStatus {
 	return results
 }
 
-// queryAppStatus runs "<app> status" and returns the structured result.
-// Failures are returned as error entries in the result.
 func queryAppStatus(appName string) appStatus {
 	result := appStatus{Name: appName}
 
@@ -99,7 +93,6 @@ func queryAppStatus(appName string) appStatus {
 		return result
 	}
 
-	// Try to parse as single JSON first, then fall back to JSONL
 	var obj map[string]any
 	if err := json.Unmarshal(execResult.Stdout, &obj); err != nil {
 		parsed, parseErr := runner.ParseJSONL(execResult.Stdout)
@@ -111,11 +104,9 @@ func queryAppStatus(appName string) appStatus {
 		obj = parsed.Result
 	}
 
-	// Extract known fields
 	if s, ok := obj["status"].(string); ok {
 		result.Status = s
 	} else {
-		// If no explicit status field but we got valid JSON, consider it ok
 		if execErr != nil {
 			result.Status = "error"
 		} else {
@@ -131,7 +122,6 @@ func queryAppStatus(appName string) appStatus {
 		result.User = u
 	}
 
-	// If exec failed, capture warning from the error field or mark as error
 	if execErr != nil {
 		result.Status = "error"
 		if errMsg, hasError := obj["error"].(string); hasError {
@@ -144,7 +134,6 @@ func queryAppStatus(appName string) appStatus {
 	return result
 }
 
-// browserStatus returns the status of the built-in browser app.
 func browserStatus() appStatus {
 	result := appStatus{
 		Name:    "browser",
@@ -171,7 +160,6 @@ func browserStatus() appStatus {
 		return result
 	}
 
-	// Check if process is alive
 	proc, err := os.FindProcess(info.PID)
 	if err != nil {
 		result.Status = "info"
@@ -186,7 +174,6 @@ func browserStatus() appStatus {
 	return result
 }
 
-// terminalStatus returns the status of the built-in terminal app.
 func terminalStatus() appStatus {
 	result := appStatus{
 		Name:    "terminal",
@@ -203,7 +190,6 @@ func terminalStatus() appStatus {
 	return result
 }
 
-// tasksStatus returns the status of the built-in tasks app.
 func tasksStatus() appStatus {
 	result := appStatus{
 		Name:    "tasks",

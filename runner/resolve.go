@@ -6,8 +6,7 @@ import (
 	"os/exec"
 )
 
-// Resolve checks that the named binary exists on $PATH using exec.LookPath.
-// Returns the full path to the binary or a structured error.
+// Resolve returns the full path to the named binary on $PATH.
 func Resolve(name string) (string, error) {
 	path, err := exec.LookPath(name)
 	if err != nil {

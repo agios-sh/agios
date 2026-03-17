@@ -6,14 +6,12 @@ import (
 	"github.com/agios-sh/agios/config"
 )
 
-// commandInfo describes a built-in agios command.
 type commandInfo struct {
 	Name    string `json:"name"`
 	Summary string `json:"summary"`
 	Usage   string `json:"usage"`
 }
 
-// builtinCommands returns the list of built-in agios commands.
 func builtinCommands() []commandInfo {
 	return []commandInfo{
 		{Name: "init", Summary: "Initialize agios.yaml in the current directory", Usage: "agios init"},
@@ -29,8 +27,6 @@ func builtinCommands() []commandInfo {
 	}
 }
 
-// RunHelp implements the "agios help" command.
-// It returns output describing all available commands and active apps from config.
 func RunHelp() {
 	result := map[string]any{
 		"usage":    "agios [command|app] [args]",
@@ -42,7 +38,6 @@ func RunHelp() {
 		},
 	}
 
-	// Try to load config and list active apps
 	cwd, err := os.Getwd()
 	if err == nil {
 		cfg, err := config.Load(cwd)
@@ -54,7 +49,6 @@ func RunHelp() {
 	writePipelinedJSON(result)
 }
 
-// RunVersion implements the "agios --version" command.
 func RunVersion(version string) {
 	writePipelinedJSON(map[string]any{
 		"version": version,

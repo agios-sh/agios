@@ -9,9 +9,7 @@ import (
 	"github.com/agios-sh/agios/runner"
 )
 
-// RunAdd implements the "agios add <app>" command.
-// It validates the binary exists on $PATH, runs "<app> status" to verify AIP compliance,
-// then adds the app to agios.yaml.
+// RunAdd validates an app binary and adds it to agios.yaml.
 func RunAdd(args []string) {
 	if len(args) == 0 {
 		writeError("Usage: agios add <name>", "INVALID_ARGS",
@@ -21,22 +19,7 @@ func RunAdd(args []string) {
 	}
 	appName := args[0]
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		writeError("Failed to get working directory", "INTERNAL_ERROR",
-			"Run `agios help` for usage information",
-		)
-		os.Exit(1)
-	}
-
-	// Load config
-	cfg, err := config.Load(cwd)
-	if err != nil {
-		writeError("No agios.yaml found. Run `agios init` first.", "NO_CONFIG",
-			"Run `agios init` to create a new agios.yaml",
-		)
-		os.Exit(1)
-	}
+	cfg := loadConfig()
 
 	if err := addApp(cfg, appName); err != nil {
 		if ce, ok := err.(*cmdError); ok {
@@ -60,9 +43,7 @@ func RunAdd(args []string) {
 	})
 }
 
-// addApp validates and adds an app to the config. Returns nil on success.
 func addApp(cfg *config.Config, appName string) error {
-	// Check if app is already listed
 	if cfg.HasApp(appName) {
 		return &cmdError{
 			msg:  fmt.Sprintf("App %q is already configured.", appName),
@@ -70,7 +51,6 @@ func addApp(cfg *config.Config, appName string) error {
 		}
 	}
 
-	// Validate binary exists on PATH
 	binPath, err := runner.Resolve(appName)
 	if err != nil {
 		return &cmdError{
@@ -80,12 +60,10 @@ func addApp(cfg *config.Config, appName string) error {
 		}
 	}
 
-	// Validate AIP compliance by running "<app> status"
 	if err := validateAIP(binPath, appName); err != nil {
 		return err
 	}
 
-	// Add app to config and save
 	cfg.Apps = append(cfg.Apps, appName)
 	if err := cfg.Save(); err != nil {
 		return &cmdError{
@@ -98,7 +76,6 @@ func addApp(cfg *config.Config, appName string) error {
 	return nil
 }
 
-// validateAIP runs "<app> status" and checks the output is valid JSON/JSONL.
 func validateAIP(binPath, appName string) error {
 	result, execErr := runner.Exec(binPath, []string{"status"}, runner.DefaultTimeout)
 	if execErr != nil && (result == nil || len(result.Stdout) == 0) {
@@ -109,11 +86,9 @@ func validateAIP(binPath, appName string) error {
 		}
 	}
 
-	// Verify the output is valid JSON
 	if result != nil && len(result.Stdout) > 0 {
 		var obj map[string]any
 		if err := json.Unmarshal(result.Stdout, &obj); err != nil {
-			// Try parsing as JSONL (last line)
 			if _, parseErr := runner.ParseJSONL(result.Stdout); parseErr != nil {
 				return &cmdError{
 					msg:   fmt.Sprintf("App %q failed AIP validation: `%s status` returned invalid JSON.", appName, appName),

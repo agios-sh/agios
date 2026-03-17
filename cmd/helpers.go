@@ -8,8 +8,7 @@ import (
 	"github.com/agios-sh/agios/output"
 )
 
-// loadConfig loads agios.yaml from the current directory, exiting with an
-// AIP error if the working directory can't be determined or no config is found.
+// loadConfig loads the nearest agios.yaml or exits with an AIP error.
 func loadConfig() *config.Config {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -33,20 +32,16 @@ func loadConfig() *config.Config {
 	return cfg
 }
 
-// writeJSON writes a JSON object to stdout.
 func writeJSON(v any) {
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
 	enc.Encode(v)
 }
 
-// writePipelinedJSON runs the output pipeline (truncation, TOON conversion)
-// on a JSON value and writes the result to stdout. Used for app output that
-// may contain large values. Falls back to writeJSON if the pipeline fails.
+// writePipelinedJSON writes v through the output pipeline (truncation + TOON).
 func writePipelinedJSON(v any) {
 	data, err := output.Process(v)
 	if err != nil {
-		// Pipeline failed — fall back to plain JSON
 		writeJSON(v)
 		return
 	}
@@ -54,10 +49,7 @@ func writePipelinedJSON(v any) {
 	os.Stdout.Write([]byte("\n"))
 }
 
-// latestProgress extracts the most recent progress value from parsed JSONL
-// progress lines. ParseJSONL stores the full line object {"progress": {...}},
-// so this unwraps the inner value when present. Returns nil if there are no
-// progress lines.
+// latestProgress unwraps the inner "progress" value from the last progress line.
 func latestProgress(progress []map[string]any) any {
 	if len(progress) == 0 {
 		return nil
@@ -69,10 +61,6 @@ func latestProgress(progress []map[string]any) any {
 	return last
 }
 
-// writeError writes an error response to stdout per the AIP output standard
-// (section 4.3). Every error includes a help array so agents always know what
-// to do next. Delegates to output.EmitError for consistent error formatting
-// across built-in and external app output paths.
 func writeError(msg, code string, help ...string) {
 	output.EmitError(msg, code, "Run `agios help` for usage information", help...)
 }
