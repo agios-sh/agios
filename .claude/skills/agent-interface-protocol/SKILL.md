@@ -1,3 +1,19 @@
+---
+name: agent-interface-protocol
+description: >
+  Use when building, modifying, or reviewing an app that follow the Agent Interface Protocol — 
+  including built-in apps (browser, terminal, tasks) and external app binaries. Covers the AIP 
+  protocol (required subcommands, output format, errors, progress, pagination) and design
+  principles (idempotency, progressive disclosure, input validation, error translation).
+  TRIGGER when: writing app command handlers, designing app output/errors/help hints,
+  adding new subcommands, or reviewing app code for AIP compliance.
+---
+
+You are building or modifying an AIP (Agent Interface Protocol) app. Follow every
+protocol requirement and design principle below.
+
+---
+
 # AIP Design Principles
 
 AIP (Agent Interface Protocol) is a protocol for building apps that are ergonomic and intuitive for agents to use. This is the single reference for anyone building an app that works with AGI OS.
@@ -70,9 +86,7 @@ Returns a free-form JSON object representing the app's current state snapshot. R
 
 ```json
 {
-  "ready": [
-    {"id": "1", "title": "Fix auth bug", "status": "open"}
-  ]
+  "ready": [{ "id": "1", "title": "Fix auth bug", "status": "open" }]
 }
 ```
 
@@ -149,7 +163,7 @@ Commands that accept content bodies read from stdin. Apps should respect these e
 
 The OS automatically optimizes app output before returning it to the agent — apps don't need to do anything:
 
-- **TOON conversion** — JSON is converted to [TOON](https://toonformat.dev/) for ~40% token savings. Apps always output JSON; the OS handles conversion.
+- **TOON conversion** — JSON is converted to TOON for ~40% token savings. Apps always output JSON; the OS handles conversion.
 - **Large value truncation** — strings exceeding 4096 chars are spilled to temp files and replaced with a file path reference.
 
 ---
