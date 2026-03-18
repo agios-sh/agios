@@ -247,7 +247,7 @@ func doPage(sess *Session, actionsOnly bool) {
 	}
 	if hp, err := handlesPath(); err == nil {
 		data, _ := json.MarshalIndent(hm, "", "  ")
-		os.WriteFile(hp, data, 0644)
+		os.WriteFile(hp, data, 0o644)
 	}
 
 	// Build compact text representation

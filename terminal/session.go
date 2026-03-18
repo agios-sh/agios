@@ -179,10 +179,11 @@ func (s *PTYSession) SendAndWait(input []byte, timeoutMs int) (screenState, erro
 	deadline := time.After(time.Duration(timeoutMs) * time.Millisecond)
 	quietPeriod := 100 * time.Millisecond
 
+waitLoop:
 	for {
 		select {
 		case <-deadline:
-			goto done
+			break waitLoop
 		default:
 		}
 
@@ -190,19 +191,18 @@ func (s *PTYSession) SendAndWait(input []byte, timeoutMs int) (screenState, erro
 			// No new writes for quietPeriod
 			if s.screen.Writes() > writesBefore {
 				// We got output and it's been quiet — done
-				goto done
+				break waitLoop
 			}
 			// No output yet — check if process exited
 			s.mu.Lock()
 			exited = s.Exited
 			s.mu.Unlock()
 			if exited {
-				goto done
+				break waitLoop
 			}
 		}
 	}
 
-done:
 	return s.screen.Screen(), nil
 }
 

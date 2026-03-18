@@ -79,7 +79,7 @@ func (c *Config) Save() error {
 		return fmt.Errorf("marshaling config: %w", err)
 	}
 
-	if err := os.WriteFile(c.Path, data, 0644); err != nil {
+	if err := os.WriteFile(c.Path, data, 0o644); err != nil {
 		return fmt.Errorf("writing %s: %w", c.Path, err)
 	}
 	return nil

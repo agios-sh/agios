@@ -213,7 +213,6 @@ func Run(args []string) {
 	}
 }
 
-// emitResult outputs a result through the agios output pipeline.
 const defaultHelp = "Run `agios browser help` for usage information"
 
 // requireSessionOrExit acquires a browser session, exiting on failure.

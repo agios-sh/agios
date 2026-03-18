@@ -34,11 +34,11 @@ func doCapture(sess *Session, outPath string) {
 			os.Exit(1)
 		}
 		tmpDir := filepath.Join(home, ".agios", "tmp")
-		os.MkdirAll(tmpDir, 0755)
+		os.MkdirAll(tmpDir, 0o755)
 		outPath = filepath.Join(tmpDir, fmt.Sprintf("capture_%s.png", randomID()))
 	}
 
-	if err := os.WriteFile(outPath, buf, 0644); err != nil {
+	if err := os.WriteFile(outPath, buf, 0o644); err != nil {
 		emitError(fmt.Sprintf("Failed to save screenshot: %v", err), "CAPTURE_ERROR")
 		os.Exit(1)
 	}

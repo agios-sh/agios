@@ -53,7 +53,7 @@ func terminalDir() (string, error) {
 		return "", fmt.Errorf("finding home directory: %w", err)
 	}
 	dir := filepath.Join(home, ".agios", "terminal")
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("creating terminal directory: %w", err)
 	}
 	return dir, nil
@@ -106,7 +106,7 @@ func runServer() {
 		os.Exit(1)
 	}
 	jsonData, _ := json.MarshalIndent(info, "", "  ")
-	if err := os.WriteFile(infoPath, jsonData, 0644); err != nil {
+	if err := os.WriteFile(infoPath, jsonData, 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "terminal server: save info: %v\n", err)
 		os.Exit(1)
 	}
@@ -252,7 +252,6 @@ func handleConnection(conn net.Conn, mgr *SessionManager) {
 	writeResponse(conn, resp)
 }
 
-// writeResponse encodes a response to a connection.
 func writeResponse(conn net.Conn, resp Response) {
 	enc := json.NewEncoder(conn)
 	enc.Encode(resp)
