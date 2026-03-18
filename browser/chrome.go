@@ -44,7 +44,7 @@ func browserDir() (string, error) {
 		return "", fmt.Errorf("finding home directory: %w", err)
 	}
 	dir := filepath.Join(home, ".agios", "browser")
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("creating browser directory: %w", err)
 	}
 	return dir, nil
@@ -151,7 +151,7 @@ func StartChrome(headed bool) (alreadyRunning bool, err error) {
 		return false, err
 	}
 	dataDir := filepath.Join(dir, "data")
-	if err := os.MkdirAll(dataDir, 0755); err != nil {
+	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		return false, fmt.Errorf("creating data directory: %w", err)
 	}
 
@@ -244,7 +244,7 @@ func StartChrome(headed bool) (alreadyRunning bool, err error) {
 		return false, err
 	}
 	jsonData, _ := json.MarshalIndent(info, "", "  ")
-	if err := os.WriteFile(sp, jsonData, 0644); err != nil {
+	if err := os.WriteFile(sp, jsonData, 0o644); err != nil {
 		return false, fmt.Errorf("saving session: %w", err)
 	}
 

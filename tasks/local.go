@@ -100,7 +100,7 @@ func (s *localSource) Get(id string) (*Task, error) {
 }
 
 func (s *localSource) Create(opts CreateOptions) (*Task, error) {
-	if err := os.MkdirAll(s.dir, 0755); err != nil {
+	if err := os.MkdirAll(s.dir, 0o755); err != nil {
 		return nil, fmt.Errorf("creating tasks directory: %w", err)
 	}
 
@@ -388,5 +388,5 @@ func (s *localSource) writeTask(t *Task) error {
 		}
 	}
 
-	return os.WriteFile(s.taskPath(t.ID), []byte(b.String()), 0644)
+	return os.WriteFile(s.taskPath(t.ID), []byte(b.String()), 0o644)
 }

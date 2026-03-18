@@ -61,7 +61,7 @@ func StartJobAt(baseJobsDir string, app string, command []string) (string, strin
 	id := generateJobID()
 	jobDir := filepath.Join(baseJobsDir, id)
 
-	if err := os.MkdirAll(jobDir, 0755); err != nil {
+	if err := os.MkdirAll(jobDir, 0o755); err != nil {
 		return "", "", fmt.Errorf("creating job directory: %w", err)
 	}
 
@@ -249,7 +249,7 @@ func writeJobMeta(jobDir string, meta *JobMeta) error {
 		return fmt.Errorf("marshaling job metadata: %w", err)
 	}
 	metaPath := filepath.Join(jobDir, "meta.json")
-	if err := os.WriteFile(metaPath, data, 0644); err != nil {
+	if err := os.WriteFile(metaPath, data, 0o644); err != nil {
 		return fmt.Errorf("writing job metadata: %w", err)
 	}
 	return nil

@@ -29,7 +29,7 @@ func tempDir() (string, error) {
 		return "", err
 	}
 	dir := filepath.Join(base, TempDir)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("creating temp directory: %w", err)
 	}
 	return dir, nil
@@ -46,7 +46,7 @@ func defaultSpill(value string) (string, error) {
 }
 
 func spillToDir(value string, dir string) (string, error) {
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("creating temp directory: %w", err)
 	}
 
@@ -57,7 +57,7 @@ func spillToDir(value string, dir string) (string, error) {
 	filename := hex.EncodeToString(b) + ".txt"
 	path := filepath.Join(dir, filename)
 
-	if err := os.WriteFile(path, []byte(value), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(value), 0o644); err != nil {
 		return "", fmt.Errorf("writing temp file: %w", err)
 	}
 

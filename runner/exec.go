@@ -12,7 +12,6 @@ import (
 // DefaultTimeout is the default subprocess timeout.
 const DefaultTimeout = 5 * time.Second
 
-// buildEnv returns the current process environment for child subprocesses.
 func buildEnv() []string {
 	return os.Environ()
 }
@@ -23,7 +22,8 @@ type ExecResult struct {
 	ExitCode int
 }
 
-// Exec runs binPath with args, capturing stdout/stderr. Killed after timeout.
+// Exec runs binPath with args, capturing stdout/stderr. The process is killed
+// if it exceeds the given timeout; callers can check for timeout via the error.
 func Exec(binPath string, args []string, timeout time.Duration) (*ExecResult, error) {
 	if timeout == 0 {
 		timeout = DefaultTimeout

@@ -85,7 +85,7 @@ func setupAgentMemoryFile(dir string) error {
 		}
 		return os.Symlink("AGENTS.md", claudePath)
 	default:
-		if err := os.WriteFile(agentsPath, []byte(agentMemoryContent), 0644); err != nil {
+		if err := os.WriteFile(agentsPath, []byte(agentMemoryContent), 0o644); err != nil {
 			return fmt.Errorf("creating AGENTS.md: %w", err)
 		}
 		if err := os.Symlink("AGENTS.md", claudePath); err != nil {
@@ -109,7 +109,7 @@ func appendToFile(path, content string) error {
 		return nil
 	}
 
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		return fmt.Errorf("opening %s: %w", path, err)
 	}
