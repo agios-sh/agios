@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/agios-sh/agios/compare/v1.3.0...v1.4.0) (2026-03-18)
+
+
+### Features
+
+* **aip:** extract AIP spec into skill ([#22](https://github.com/agios-sh/agios/issues/22)) ([cca5282](https://github.com/agios-sh/agios/commit/cca5282b53aac2748a3e4d0d380726e55baa668d))
+
 ## [1.3.0](https://github.com/agios-sh/agios/compare/v1.2.0...v1.3.0) (2026-03-14)
 
 
